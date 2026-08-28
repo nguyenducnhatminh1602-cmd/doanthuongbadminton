@@ -2694,6 +2694,32 @@ class AuthManager {
     window.realtimeDB.listen('users', (usersData) => {
       this.users = usersData || {};
       
+      // Auto-heal / Chuẩn hóa dữ liệu tài khoản nếu Firebase thiếu trường
+      for (let uname in this.users) {
+        if (!this.users[uname]) continue;
+        const u = this.users[uname];
+        u.username = u.username || uname;
+        
+        // Khôi phục tự động thông tin 2 Admin BQT
+        if (uname.toLowerCase() === 'nguyenducnhatminh') {
+          u.role = 'admin';
+          u.fullName = u.fullName || 'Nguyễn Đức Nhật Minh';
+          u.classGroup = u.classGroup || 'Ban Quản Trị';
+          u.gender = u.gender || 'nam';
+          u.dominantHand = u.dominantHand || 'Phải';
+        } else if (uname.toLowerCase() === 'nguyenduchieu') {
+          u.role = 'admin';
+          u.fullName = u.fullName || 'Nguyễn Đức Hiếu';
+          u.classGroup = u.classGroup || 'Ban Quản Trị';
+          u.gender = u.gender || 'nam';
+          u.dominantHand = u.dominantHand || 'Phải';
+        } else {
+          u.fullName = u.fullName || u.username;
+          u.role = u.role || 'member';
+          u.classGroup = u.classGroup || 'Học sinh';
+        }
+      }
+
       if (this.currentUser && this.users[this.currentUser.username]) {
         this.currentUser = this.users[this.currentUser.username];
         localStorage.setItem('DT_CURRENT_USER', JSON.stringify(this.currentUser));
@@ -2704,26 +2730,45 @@ class AuthManager {
   }
 
   async login(username, password) {
-    const cleanUsername = username.trim().toLowerCase();
-    const cleanPassword = password;
+    const cleanUsername = (username || '').trim().toLowerCase();
+    const cleanPassword = (password || '').trim();
 
     if (!cleanUsername || !cleanPassword) {
       throw new Error("Vui lòng nhập đầy đủ tên đăng nhập và mật khẩu!");
     }
 
-    const user = this.users[cleanUsername];
+    let user = this.users[cleanUsername];
     if (!user) {
       throw new Error("Tài khoản không tồn tại trên hệ thống!");
     }
 
-    if (user.password !== cleanPassword) {
+    // So sánh mật khẩu (loại bỏ khoảng trắng thừa nếu có)
+    const userPass = (user.password || '').trim();
+    if (userPass !== cleanPassword && user.password !== password) {
       throw new Error("Mật khẩu không chính xác! Vui lòng kiểm tra lại.");
+    }
+
+    // Đảm bảo thông tin tài khoản đầy đủ
+    user.username = cleanUsername;
+    if (cleanUsername === 'nguyenducnhatminh') {
+      user.role = 'admin';
+      user.fullName = user.fullName || 'Nguyễn Đức Nhật Minh';
+      user.classGroup = user.classGroup || 'Ban Quản Trị';
+    } else if (cleanUsername === 'nguyenduchieu') {
+      user.role = 'admin';
+      user.fullName = user.fullName || 'Nguyễn Đức Hiếu';
+      user.classGroup = user.classGroup || 'Ban Quản Trị';
     }
 
     this.currentUser = user;
     localStorage.setItem('DT_CURRENT_USER', JSON.stringify(user));
     
+    // Cập nhật lên Realtime Database đầy đủ các trường
     await window.realtimeDB.update(`users/${cleanUsername}`, {
+      username: user.username,
+      fullName: user.fullName || cleanUsername,
+      role: user.role || 'member',
+      classGroup: user.classGroup || 'CLB',
       lastActive: new Date().toISOString(),
       isOnline: true
     });
@@ -2733,11 +2778,11 @@ class AuthManager {
   }
 
   async register(formData) {
-    const username = formData.username.trim().toLowerCase();
-    const password = formData.password;
-    const fullName = formData.fullName.trim();
-    const classGroup = formData.classGroup.trim();
-    const gender = formData.gender;
+    const username = (formData.username || '').trim().toLowerCase();
+    const password = (formData.password || '').trim();
+    const fullName = (formData.fullName || '').trim();
+    const classGroup = (formData.classGroup || '').trim();
+    const gender = formData.gender || 'nam';
     const dominantHand = formData.dominantHand || 'Phải';
 
     if (!username || !password || !fullName || !classGroup) {
@@ -2827,7 +2872,9 @@ class AuthManager {
   }
 
   isAdmin() {
-    return this.currentUser && this.currentUser.role === 'admin';
+    if (!this.currentUser) return false;
+    const uname = (this.currentUser.username || '').toLowerCase();
+    return this.currentUser.role === 'admin' || uname === 'nguyenducnhatminh' || uname === 'nguyenduchieu';
   }
 
   isLoggedIn() {
@@ -2846,12 +2893,14 @@ class AuthManager {
       if (authLoggedOut) authLoggedOut.style.display = 'none';
       if (authLoggedIn) authLoggedIn.style.display = 'flex';
       
-      if (userDisplayName) userDisplayName.textContent = this.currentUser.fullName || this.currentUser.username;
+      const displayName = this.currentUser.fullName || this.currentUser.username || 'Thành viên';
+      if (userDisplayName) userDisplayName.textContent = displayName;
+      
       if (userDisplayRole) {
-        userDisplayRole.textContent = this.currentUser.role === 'admin' ? '🛡️ Admin BQT' : `🏸 Lớp ${this.currentUser.classGroup}`;
+        userDisplayRole.textContent = this.isAdmin() ? '🛡️ Admin BQT' : `🏸 Lớp ${this.currentUser.classGroup || 'Học sinh'}`;
       }
       if (userAvatarSm) {
-        userAvatarSm.textContent = (this.currentUser.fullName || this.currentUser.username).charAt(0).toUpperCase();
+        userAvatarSm.textContent = (displayName.charAt(0) || 'U').toUpperCase();
       }
 
       if (adminNavBtn) {
@@ -2916,7 +2965,7 @@ class RankingManager {
   }
 
   setSearchQuery(query) {
-    this.searchQuery = query.toLowerCase().trim();
+    this.searchQuery = (query || '').toLowerCase().trim();
     this.render();
   }
 
@@ -2930,13 +2979,14 @@ class RankingManager {
 
       for (let uname in this.users) {
         const u = this.users[uname];
+        if (!u) continue;
         if (u.gender === targetGender) {
           const points = u[pointField] || 0;
           list.push({
-            id: u.username,
+            id: u.username || uname,
             type: 'single',
-            username: u.username,
-            fullName: u.fullName || u.username,
+            username: u.username || uname,
+            fullName: u.fullName || u.username || uname,
             classGroup: u.classGroup || 'N/A',
             gender: u.gender,
             dominantHand: u.dominantHand || 'Phải',
@@ -2950,15 +3000,16 @@ class RankingManager {
     } else {
       for (let pid in this.pairs) {
         const p = this.pairs[pid];
+        if (!p) continue;
         if (p.category === cat && p.status === 'accepted') {
           list.push({
-            id: p.id,
+            id: p.id || pid,
             type: 'pair',
             category: p.category,
             player1: p.player1,
             player2: p.player2,
-            player1Name: p.player1Name,
-            player2Name: p.player2Name,
+            player1Name: p.player1Name || p.player1 || 'VĐV 1',
+            player2Name: p.player2Name || p.player2 || 'VĐV 2',
             player1Class: p.player1Class || 'CLB',
             player2Class: p.player2Class || 'CLB',
             points: p.points || 0,
@@ -2974,13 +3025,13 @@ class RankingManager {
     if (this.searchQuery) {
       list = list.filter(item => {
         if (item.type === 'single') {
-          return item.fullName.toLowerCase().includes(this.searchQuery) ||
-                 item.classGroup.toLowerCase().includes(this.searchQuery);
+          return (item.fullName || '').toLowerCase().includes(this.searchQuery) ||
+                 (item.classGroup || '').toLowerCase().includes(this.searchQuery);
         } else {
-          return item.player1Name.toLowerCase().includes(this.searchQuery) ||
-                 item.player2Name.toLowerCase().includes(this.searchQuery) ||
-                 item.player1Class.toLowerCase().includes(this.searchQuery) ||
-                 item.player2Class.toLowerCase().includes(this.searchQuery);
+          return (item.player1Name || '').toLowerCase().includes(this.searchQuery) ||
+                 (item.player2Name || '').toLowerCase().includes(this.searchQuery) ||
+                 (item.player1Class || '').toLowerCase().includes(this.searchQuery) ||
+                 (item.player2Class || '').toLowerCase().includes(this.searchQuery);
         }
       });
     }
@@ -2990,7 +3041,7 @@ class RankingManager {
 
   updateTopStats() {
     const totalMembers = Object.keys(this.users).length;
-    const acceptedPairs = Object.values(this.pairs).filter(p => p.status === 'accepted').length;
+    const acceptedPairs = Object.values(this.pairs).filter(p => p && p.status === 'accepted').length;
 
     const statMembersEl = document.getElementById('stat-total-members');
     const statPairsEl = document.getElementById('stat-total-pairs');
@@ -3043,7 +3094,7 @@ class RankingManager {
       else deltaHtml = '<span class="rank-delta same"><i class="fa-solid fa-minus"></i> 0</span>';
 
       if (!isDoubles) {
-        const initial = item.fullName.charAt(0).toUpperCase();
+        const initial = (item.fullName || item.username || 'V').charAt(0).toUpperCase();
         html += `
           <tr>
             <td style="width: 80px; text-align: center;">
@@ -3075,14 +3126,14 @@ class RankingManager {
               ${item.tournamentsCount} giải
             </td>
             <td style="text-align: right; padding-right: 24px;">
-              <span class="points-badge">${item.points.toLocaleString()}</span>
+              <span class="points-badge">${(item.points || 0).toLocaleString()}</span>
               <span style="font-size: 0.72rem; color: #94a3b8; display: block;">PTS</span>
             </td>
           </tr>
         `;
       } else {
-        const init1 = item.player1Name.charAt(0).toUpperCase();
-        const init2 = item.player2Name.charAt(0).toUpperCase();
+        const init1 = (item.player1Name || 'V').charAt(0).toUpperCase();
+        const init2 = (item.player2Name || 'V').charAt(0).toUpperCase();
 
         html += `
           <tr>
@@ -3117,7 +3168,7 @@ class RankingManager {
               ${item.tournamentsCount} giải
             </td>
             <td style="text-align: right; padding-right: 24px;">
-              <span class="points-badge" style="color: var(--bwf-red);">${item.points.toLocaleString()}</span>
+              <span class="points-badge" style="color: var(--bwf-red);">${(item.points || 0).toLocaleString()}</span>
               <span style="font-size: 0.72rem; color: #94a3b8; display: block;">PTS</span>
             </td>
           </tr>
@@ -3184,7 +3235,7 @@ class DoublesManager {
         const friendUser = this.users[friendUname];
         if (friendUser) {
           hasFriends = true;
-          options += `<option value="${friendUname}">${friendUser.fullName} (@${friendUname} - Lớp ${friendUser.classGroup} - ${friendUser.gender === 'nam' ? 'Nam' : 'Nữ'})</option>`;
+          options += `<option value="${friendUname}">${friendUser.fullName || friendUname} (@${friendUname} - Lớp ${friendUser.classGroup || 'N/A'} - ${friendUser.gender === 'nam' ? 'Nam' : 'Nữ'})</option>`;
         }
       }
     }
@@ -3231,7 +3282,7 @@ class DoublesManager {
 
     for (let pid in this.pairs) {
       const p = this.pairs[pid];
-      if (p.category === category && p.status === 'accepted') {
+      if (p && p.category === category && p.status === 'accepted') {
         if ((p.player1 === me.username && p.player2 === partnerUsername) ||
             (p.player1 === partnerUsername && p.player2 === me.username)) {
           throw new Error("Cặp đôi này đã được đăng ký và đang có mặt trên bảng xếp hạng!");
@@ -3244,11 +3295,11 @@ class DoublesManager {
       id: requestId,
       category: category,
       senderUsername: me.username,
-      senderName: me.fullName,
-      senderClass: me.classGroup,
+      senderName: me.fullName || me.username,
+      senderClass: me.classGroup || 'N/A',
       receiverUsername: partnerUsername,
-      receiverName: partner.fullName,
-      receiverClass: partner.classGroup,
+      receiverName: partner.fullName || partner.username,
+      receiverClass: partner.classGroup || 'N/A',
       status: 'pending',
       createdAt: new Date().toISOString()
     };
@@ -3322,7 +3373,7 @@ class DoublesManager {
 
       for (let reqId in this.pairRequests) {
         const req = this.pairRequests[reqId];
-        if (req.receiverUsername === myUsername && req.status === 'pending') {
+        if (req && req.receiverUsername === myUsername && req.status === 'pending') {
           hasPending = true;
           const catName = req.category === 'MD' ? 'Đôi Nam' : (req.category === 'WD' ? 'Đôi Nữ' : 'Đôi Nam Nữ');
           pendingHtml += `
@@ -3359,7 +3410,7 @@ class DoublesManager {
 
       for (let pid in this.pairs) {
         const p = this.pairs[pid];
-        if (p.status === 'accepted' && (p.player1 === myUsername || p.player2 === myUsername)) {
+        if (p && p.status === 'accepted' && (p.player1 === myUsername || p.player2 === myUsername)) {
           hasPairs = true;
           const catName = p.category === 'MD' ? 'Đôi Nam' : (p.category === 'WD' ? 'Đôi Nữ' : 'Đôi Nam Nữ');
           const partnerClass = p.player1 === myUsername ? p.player2Class : p.player1Class;
@@ -3458,8 +3509,8 @@ class FriendsChatManager {
     const req = {
       id: reqId,
       senderUsername: me,
-      senderName: window.authManager.currentUser.fullName,
-      senderClass: window.authManager.currentUser.classGroup,
+      senderName: window.authManager.currentUser.fullName || me,
+      senderClass: window.authManager.currentUser.classGroup || 'N/A',
       receiverUsername: targetUsername,
       status: 'pending',
       createdAt: new Date().toISOString()
@@ -3501,9 +3552,10 @@ class FriendsChatManager {
     if (noChatPlaceholder) noChatPlaceholder.style.display = 'none';
     if (chatWindow) chatWindow.style.display = 'flex';
 
-    if (partnerNameEl) partnerNameEl.textContent = partner.fullName;
-    if (partnerMetaEl) partnerMetaEl.textContent = `Lớp ${partner.classGroup} • @${partner.username}`;
-    if (partnerAvatarEl) partnerAvatarEl.textContent = partner.fullName.charAt(0).toUpperCase();
+    const pName = partner.fullName || partner.username || friendUsername;
+    if (partnerNameEl) partnerNameEl.textContent = pName;
+    if (partnerMetaEl) partnerMetaEl.textContent = `Lớp ${partner.classGroup || 'CLB'} • @${partner.username || friendUsername}`;
+    if (partnerAvatarEl) partnerAvatarEl.textContent = (pName.charAt(0) || 'U').toUpperCase();
 
     this.renderChatMessages();
     this.renderFriendsList();
@@ -3576,7 +3628,8 @@ class FriendsChatManager {
   }
 
   escapeHtml(str) {
-    return str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
+    if (!str) return '';
+    return String(str).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
   }
 
   render() {
@@ -3634,19 +3687,21 @@ class FriendsChatManager {
 
     let html = '';
     list.forEach(friend => {
-      const isActive = this.activeChatPartner === friend.username;
-      const initial = friend.fullName.charAt(0).toUpperCase();
+      const uname = friend.username || '';
+      const fname = friend.fullName || uname || 'Bạn bè';
+      const isActive = this.activeChatPartner === uname;
+      const initial = (fname.charAt(0) || 'U').toUpperCase();
       const isOnline = !!friend.isOnline;
 
       html += `
-        <div class="friend-item ${isActive ? 'active' : ''}" onclick="friendsChatManager.openChatWith('${friend.username}')">
+        <div class="friend-item ${isActive ? 'active' : ''}" onclick="friendsChatManager.openChatWith('${uname}')">
           <div class="friend-avatar-wrap">
             <div class="player-avatar" style="width: 38px; height: 38px; font-size: 0.85rem;">${initial}</div>
             <span class="online-indicator ${isOnline ? '' : 'offline'}"></span>
           </div>
           <div class="friend-info">
-            <div class="friend-name">${friend.fullName}</div>
-            <div class="friend-last-msg">Lớp ${friend.classGroup} • @${friend.username}</div>
+            <div class="friend-name">${fname}</div>
+            <div class="friend-last-msg">Lớp ${friend.classGroup || 'CLB'} • @${uname}</div>
           </div>
         </div>
       `;
@@ -3671,12 +3726,14 @@ class FriendsChatManager {
     for (let uname in this.users) {
       if (uname !== myUsername) {
         const u = this.users[uname];
+        if (!u) continue;
+        const fname = u.fullName || u.username || uname;
         const isFriend = myFriendsMap[uname] === 'accepted';
         
         let isPending = false;
         for (let rId in this.friendRequests) {
           const r = this.friendRequests[rId];
-          if (r.senderUsername === myUsername && r.receiverUsername === uname && r.status === 'pending') {
+          if (r && r.senderUsername === myUsername && r.receiverUsername === uname && r.status === 'pending') {
             isPending = true;
             break;
           }
@@ -3684,15 +3741,15 @@ class FriendsChatManager {
 
         html += `
           <div class="friend-item" style="cursor: default;">
-            <div class="player-avatar" style="width: 36px; height: 36px; font-size: 0.8rem;">${u.fullName.charAt(0).toUpperCase()}</div>
+            <div class="player-avatar" style="width: 36px; height: 36px; font-size: 0.8rem;">${(fname.charAt(0) || 'U').toUpperCase()}</div>
             <div class="friend-info">
-              <div class="friend-name">${u.fullName}</div>
-              <div class="friend-last-msg">Lớp ${u.classGroup} • @${u.username}</div>
+              <div class="friend-name">${fname}</div>
+              <div class="friend-last-msg">Lớp ${u.classGroup || 'CLB'} • @${uname}</div>
             </div>
             <div>
               ${isFriend ? '<span class="tag-class" style="background:#dcfce7; color:#15803d; font-size:0.7rem;">Bạn bè</span>' : 
                 (isPending ? '<span class="tag-class" style="background:#fef3c7; color:#b45309; font-size:0.7rem;">Đã gửi</span>' : 
-                `<button class="btn btn-primary btn-sm" style="font-size: 0.72rem; padding: 4px 8px;" onclick="friendsChatManager.sendFriendRequest('${u.username}')">
+                `<button class="btn btn-primary btn-sm" style="font-size: 0.72rem; padding: 4px 8px;" onclick="friendsChatManager.sendFriendRequest('${uname}')">
                   <i class="fa-solid fa-user-plus"></i> Kết bạn
                  </button>`)}
             </div>
@@ -3706,7 +3763,7 @@ class FriendsChatManager {
   }
 
   filterFindList(query) {
-    const q = query.toLowerCase().trim();
+    const q = (query || '').toLowerCase().trim();
     const items = document.querySelectorAll('#find-friends-results .friend-item');
     items.forEach(el => {
       const text = el.textContent.toLowerCase();
@@ -3724,7 +3781,7 @@ class FriendsChatManager {
 
     for (let rId in this.friendRequests) {
       const r = this.friendRequests[rId];
-      if (r.receiverUsername === myUsername && r.status === 'pending') {
+      if (r && r.receiverUsername === myUsername && r.status === 'pending') {
         count++;
         html += `
           <div class="pair-request-card" style="margin: 8px;">
@@ -3787,13 +3844,13 @@ class MatchmakingManager {
     }
 
     const me = window.authManager.currentUser;
-    const title = formData.title.trim();
-    const timeFrame = formData.timeFrame.trim();
-    const location = formData.location.trim();
+    const title = (formData.title || '').trim();
+    const timeFrame = (formData.timeFrame || '').trim();
+    const location = (formData.location || '').trim();
     const category = formData.category;
     const maxPlayers = parseInt(formData.maxPlayers) || 4;
     const level = formData.level || 'Tất cả trình độ';
-    const notes = formData.notes.trim();
+    const notes = (formData.notes || '').trim();
 
     if (!title || !timeFrame || !location) {
       throw new Error("Vui lòng nhập đầy đủ Tiêu đề, Khung giờ và Địa điểm sân cầu!");
@@ -3810,15 +3867,15 @@ class MatchmakingManager {
       level: level,
       notes: notes,
       creatorUsername: me.username,
-      creatorName: me.fullName,
-      creatorClass: me.classGroup,
+      creatorName: me.fullName || me.username,
+      creatorClass: me.classGroup || 'N/A',
       status: 'open',
       createdAt: new Date().toISOString(),
       joinedPlayers: [
         {
           username: me.username,
-          fullName: me.fullName,
-          classGroup: me.classGroup
+          fullName: me.fullName || me.username,
+          classGroup: me.classGroup || 'N/A'
         }
       ]
     };
@@ -3849,8 +3906,8 @@ class MatchmakingManager {
 
     players.push({
       username: me.username,
-      fullName: me.fullName,
-      classGroup: me.classGroup
+      fullName: me.fullName || me.username,
+      classGroup: me.classGroup || 'N/A'
     });
 
     const isFull = players.length >= match.maxPlayers;
@@ -3931,7 +3988,7 @@ class MatchmakingManager {
         const isHost = p.username === m.creatorUsername;
         playerChipsHtml += `
           <span class="player-chip ${isHost ? 'creator' : ''}">
-            ${isHost ? '👑 ' : ''}${p.fullName} (${p.classGroup})
+            ${isHost ? '👑 ' : ''}${p.fullName || p.username} (${p.classGroup || 'CLB'})
           </span>
         `;
       });
@@ -3982,7 +4039,7 @@ class MatchmakingManager {
                 <button class="btn btn-outline btn-sm" style="color: #dc2626; border-color: #fca5a5;" onclick="matchmakingManager.deleteMatch('${m.id}')">
                   <i class="fa-solid fa-trash"></i> Hủy kèo
                 </button>
-              ` : `<span style="font-size: 0.75rem; color: #94a3b8;">Người tạo: ${m.creatorName}</span>`}
+              ` : `<span style="font-size: 0.75rem; color: #94a3b8;">Người tạo: ${m.creatorName || m.creatorUsername}</span>`}
             </div>
             <div>
               ${isJoined ? `
@@ -4031,9 +4088,9 @@ class NewsManager {
       throw new Error("Chỉ Admin mới có quyền đăng tin tức và tài liệu!");
     }
 
-    const title = formData.title.trim();
+    const title = (formData.title || '').trim();
     const category = formData.category || 'Thông báo';
-    const content = formData.content.trim();
+    const content = (formData.content || '').trim();
     const imageUrl = formData.imageUrl || '';
     const documents = formData.documents || [];
 
@@ -4042,7 +4099,7 @@ class NewsManager {
     }
 
     const newsId = `news_${Date.now()}`;
-    const author = window.authManager.currentUser.fullName || window.authManager.currentUser.username;
+    const author = window.authManager.currentUser.fullName || window.authManager.currentUser.username || 'Ban Quản Trị';
     
     const post = {
       id: newsId,
@@ -4116,7 +4173,7 @@ class NewsManager {
               <i class="fa-regular fa-calendar"></i> ${post.date} • Đăng bởi: ${post.author}
             </div>
             <h3 class="news-title">${post.title}</h3>
-            <p class="news-excerpt">${post.content.replace(/\n/g, '<br>')}</p>
+            <p class="news-excerpt">${(post.content || '').replace(/\n/g, '<br>')}</p>
             ${docHtml}
             ${isAdmin ? `
               <div style="margin-top: 14px; padding-top: 10px; border-top: 1px dashed #e2e8f0; display: flex; justify-content: flex-end;">
@@ -4183,15 +4240,17 @@ class AdminManager {
       const users = window.authManager.users || {};
       for (let uname in users) {
         const u = users[uname];
-        options += `<option value="${u.username}">[Đơn] ${u.fullName} (@${u.username} - Lớp ${u.classGroup} - ${u.gender === 'nam' ? 'Nam' : 'Nữ'})</option>`;
+        if (!u) continue;
+        const fname = u.fullName || u.username || uname;
+        options += `<option value="${uname}">[Đơn] ${fname} (@${uname} - Lớp ${u.classGroup || 'CLB'} - ${u.gender === 'nam' ? 'Nam' : 'Nữ'})</option>`;
       }
     } else {
       const pairs = window.doublesManager.pairs || {};
       for (let pid in pairs) {
         const p = pairs[pid];
-        if (p.status === 'accepted') {
+        if (p && p.status === 'accepted') {
           const catName = p.category === 'MD' ? 'Đôi Nam' : (p.category === 'WD' ? 'Đôi Nữ' : 'Đôi Nam Nữ');
-          options += `<option value="${p.id}">[${catName}] ${p.player1Name} & ${p.player2Name} (${p.player1Class}/${p.player2Class})</option>`;
+          options += `<option value="${p.id || pid}">[${catName}] ${p.player1Name} & ${p.player2Name} (${p.player1Class}/${p.player2Class})</option>`;
         }
       }
     }
@@ -4206,8 +4265,8 @@ class AdminManager {
     const targetId = formData.targetId;
     const action = formData.action;
     const amount = parseInt(formData.amount);
-    const tournamentName = formData.tournamentName.trim() || 'Giải Cầu Lông Đoàn Thượng';
-    const reason = formData.reason.trim();
+    const tournamentName = (formData.tournamentName || '').trim() || 'Giải Cầu Lông Đoàn Thượng';
+    const reason = (formData.reason || '').trim();
 
     if (!targetId) throw new Error("Vui lòng chọn đối tượng được cộng/trừ điểm!");
     if (isNaN(amount) || amount <= 0) throw new Error("Số điểm phải lớn hơn 0!");
@@ -4251,8 +4310,10 @@ class AdminManager {
 
     for (let uname in users) {
       const u = users[uname];
-      const isAdmin = u.role === 'admin';
-      const initial = (u.fullName || u.username).charAt(0).toUpperCase();
+      if (!u) continue;
+      const isAdmin = u.role === 'admin' || uname === 'nguyenducnhatminh' || uname === 'nguyenduchieu';
+      const fname = u.fullName || u.username || uname;
+      const initial = (fname.charAt(0) || 'U').toUpperCase();
 
       html += `
         <tr>
@@ -4260,8 +4321,8 @@ class AdminManager {
             <div class="player-cell">
               <div class="player-avatar" style="width: 34px; height: 34px; font-size: 0.8rem;">${initial}</div>
               <div>
-                <strong>${u.fullName}</strong>
-                <div style="font-size: 0.75rem; color: #94a3b8;">@${u.username}</div>
+                <strong>${fname}</strong>
+                <div style="font-size: 0.75rem; color: #94a3b8;">@${uname}</div>
               </div>
             </div>
           </td>
@@ -4281,11 +4342,11 @@ class AdminManager {
           </td>
           <td>
             <div style="display: flex; gap: 6px;">
-              <button class="btn btn-secondary btn-sm" onclick="adminManager.promptChangePassword('${u.username}')" title="Đổi mật khẩu">
+              <button class="btn btn-secondary btn-sm" onclick="adminManager.promptChangePassword('${uname}')" title="Đổi mật khẩu">
                 <i class="fa-solid fa-key"></i>
               </button>
               ${!isAdmin ? `
-                <button class="btn btn-outline btn-sm" style="color: #dc2626; border-color: #fca5a5;" onclick="adminManager.deleteMember('${u.username}')" title="Xóa thành viên">
+                <button class="btn btn-outline btn-sm" style="color: #dc2626; border-color: #fca5a5;" onclick="adminManager.deleteMember('${uname}')" title="Xóa thành viên">
                   <i class="fa-solid fa-trash"></i>
                 </button>
               ` : ''}
@@ -4318,11 +4379,11 @@ class AdminManager {
   }
 
   async addNewMemberManual(formData) {
-    const username = formData.username.trim().toLowerCase();
-    const password = formData.password.trim();
-    const fullName = formData.fullName.trim();
-    const classGroup = formData.classGroup.trim();
-    const gender = formData.gender;
+    const username = (formData.username || '').trim().toLowerCase();
+    const password = (formData.password || '').trim();
+    const fullName = (formData.fullName || '').trim();
+    const classGroup = (formData.classGroup || '').trim();
+    const gender = formData.gender || 'nam';
     const role = formData.role || 'member';
 
     if (!username || !password || !fullName || !classGroup) {
@@ -4363,6 +4424,7 @@ class AdminManager {
 
     for (let pid in pairs) {
       const p = pairs[pid];
+      if (!p) continue;
       const catName = p.category === 'MD' ? 'Đôi Nam' : (p.category === 'WD' ? 'Đôi Nữ' : 'Đôi Nam Nữ');
 
       html += `
@@ -4383,7 +4445,7 @@ class AdminManager {
             ${(p.points || 0).toLocaleString()} PTS
           </td>
           <td>
-            <button class="btn btn-outline btn-sm" style="color: #dc2626; border-color: #fca5a5;" onclick="adminManager.deletePair('${p.id}')">
+            <button class="btn btn-outline btn-sm" style="color: #dc2626; border-color: #fca5a5;" onclick="adminManager.deletePair('${p.id || pid}')">
               <i class="fa-solid fa-trash"></i> Hủy
             </button>
           </td>
@@ -4607,7 +4669,6 @@ function fileToBase64(file) {
     reader.onerror = error => reject(error);
   });
 }
-
 
 </script>
 
