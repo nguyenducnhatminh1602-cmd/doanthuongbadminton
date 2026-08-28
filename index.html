@@ -1,158 +1,892 @@
 <!DOCTYPE html>
 <html lang="vi">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Đoàn Thượng Badminton</title>
-<style>
-:root{--navy:#071b35;--blue:#0b5ed7;--cyan:#12b5cb;--green:#18a957;--red:#e5484d;--bg:#f3f6fa;--card:#fff;--text:#172033;--muted:#718096;--line:#e7edf4}
-*{box-sizing:border-box} body{margin:0;font-family:Arial,Helvetica,sans-serif;background:var(--bg);color:var(--text)}
-button,input,select{font:inherit} button{cursor:pointer;border:0}
-.top{height:70px;background:linear-gradient(135deg,#06182e,#0b3c78);color:white;display:flex;align-items:center;padding:0 5%;justify-content:space-between;position:sticky;top:0;z-index:20;box-shadow:0 4px 18px #071b3526}
-.brand{display:flex;align-items:center;gap:12px;font-weight:800;letter-spacing:.5px}.logo{width:42px;height:42px;border:2px solid #fff;border-radius:50%;display:grid;place-items:center;font-size:20px}
-.nav{display:flex;gap:6px}.nav button{background:transparent;color:#dbeafe;padding:11px 15px;border-radius:8px}.nav button.active,.nav button:hover{background:#ffffff18;color:#fff}
-.hero{background:linear-gradient(135deg,#06182e 0%,#0a3970 60%,#0fa9ba 140%);color:#fff;padding:55px 5% 65px;position:relative;overflow:hidden}.hero:after{content:"";position:absolute;width:330px;height:330px;border:50px solid #ffffff10;border-radius:50%;right:-80px;top:-120px}
-.hero h1{font-size:44px;margin:0 0 10px}.hero p{color:#c9dbf2;font-size:17px;max-width:700px}.hero .badge{display:inline-block;background:#15b77a;color:white;padding:7px 12px;border-radius:99px;font-size:12px;font-weight:800;margin-bottom:15px}
-.wrap{max-width:1200px;margin:-28px auto 50px;padding:0 20px;position:relative;z-index:2}
-.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:15px}.stat{background:white;border-radius:14px;padding:20px;box-shadow:0 8px 25px #183b5d12}.stat small{color:var(--muted)}.stat b{display:block;font-size:27px;margin-top:5px}
-.card{background:var(--card);border-radius:15px;box-shadow:0 8px 25px #183b5d12;margin-top:18px;overflow:hidden}.cardhead{padding:22px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--line)}.cardhead h2{margin:0}.tools{display:flex;gap:10px;flex-wrap:wrap}.search{padding:11px 14px;border:1px solid var(--line);border-radius:9px;min-width:220px;outline:none}.search:focus{border-color:var(--blue)}
-.tabs{display:flex;gap:7px;padding:15px 22px;border-bottom:1px solid var(--line);overflow:auto}.tab{background:#edf3fa;color:#4a5a70;padding:9px 14px;border-radius:8px;white-space:nowrap}.tab.active{background:var(--navy);color:white}
-table{width:100%;border-collapse:collapse}.tablewrap{overflow-x:auto}th{font-size:12px;text-transform:uppercase;color:#7b8799;text-align:left;background:#f8fafc;padding:13px 18px}td{padding:15px 18px;border-top:1px solid var(--line)}tr:hover td{background:#fafcff}
-.rank{font-size:20px;font-weight:900;width:70px}.player{display:flex;align-items:center;gap:12px}.avatar{width:40px;height:40px;border-radius:50%;display:grid;place-items:center;background:linear-gradient(135deg,#0b5ed7,#11b5c8);color:white;font-weight:800}.pname{font-weight:800}.sub{font-size:12px;color:var(--muted);margin-top:3px}.points{font-size:18px;font-weight:900}.up{color:var(--green);font-weight:800}.down{color:var(--red);font-weight:800}.medal{font-size:23px}
-.page{display:none}.page.active{display:block}
-.btn{padding:10px 14px;border-radius:9px;font-weight:700}.primary{background:var(--blue);color:white}.success{background:var(--green);color:white}.danger{background:var(--red);color:white}.ghost{background:#edf3fa;color:#18304d}.btn:hover{filter:brightness(.95)}
-.adminbar{display:flex;justify-content:space-between;align-items:center;background:#06182e;color:white;padding:16px 22px}.adminbar span{font-weight:800}.formgrid{display:grid;grid-template-columns:repeat(2,1fr);gap:13px;padding:20px}.field label{display:block;font-size:12px;color:var(--muted);margin-bottom:6px;font-weight:700}.field input,.field select{width:100%;padding:11px;border:1px solid var(--line);border-radius:8px;outline:none}.field input:focus,.field select:focus{border-color:var(--blue)}
-.login{max-width:430px;margin:70px auto;background:white;padding:32px;border-radius:16px;box-shadow:0 10px 35px #183b5d18}.login h2{text-align:center;margin-top:0}.login .field{margin:14px 0}.hint{font-size:12px;color:var(--muted);background:#f5f8fc;padding:10px;border-radius:8px}
-.profile{padding:25px;display:grid;grid-template-columns:120px 1fr;gap:25px}.bigavatar{width:110px;height:110px;border-radius:50%;display:grid;place-items:center;background:linear-gradient(135deg,#071b35,#10b8c8);color:white;font-size:38px;font-weight:900}.profile h2{margin:0 0 5px}.profile .score{font-size:38px;font-weight:900;color:var(--blue)}.history{padding:0 25px 25px}
-.toast{position:fixed;right:20px;bottom:20px;background:#06182e;color:white;padding:13px 18px;border-radius:10px;box-shadow:0 8px 30px #0003;display:none;z-index:50}
-footer{text-align:center;color:#7c8796;padding:35px 10px;font-size:13px}
-@media(max-width:800px){.stats{grid-template-columns:repeat(2,1fr)}.nav button{display:none}.hero h1{font-size:32px}.formgrid{grid-template-columns:1fr}.profile{grid-template-columns:1fr;text-align:center}.bigavatar{margin:auto}}
-</style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Đoàn Thượng Badminton - Hệ Thống Xếp Hạng BWF & Kết Nối</title>
+  
+  <!-- Font & Icons -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  
+  <!-- App Stylesheet -->
+  <link rel="stylesheet" href="css/style.css">
+
+  <!-- Firebase SDKs (Compat v10 for direct browser & GitHub Pages support) -->
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-database-compat.js"></script>
 </head>
 <body>
-<header class="top">
-  <div class="brand"><div class="logo">🏸</div><span>ĐOÀN THƯỢNG BADMINTON</span></div>
-  <nav class="nav"><button class="active" onclick="showPage('home',this)">BXH</button><button onclick="showPage('players',this)">VĐV</button><button onclick="showPage('admin',this)">ADMIN</button></nav>
-</header>
 
-<section class="hero">
-  <span class="badge">CLB CẦU LÔNG ĐOÀN THƯỢNG</span>
-  <h1>Bảng xếp hạng CLB</h1>
-  <p>Hệ thống xếp hạng nội bộ dành cho các thành viên Đoàn Thượng Badminton. Điểm số được cập nhật bởi Ban quản trị CLB.</p>
-</section>
-
-<main class="wrap">
-<section id="home" class="page active">
-  <div class="stats">
-    <div class="stat"><small>Thành viên</small><b id="sPlayers">0</b></div>
-    <div class="stat"><small>Tổng điểm</small><b id="sPoints">0</b></div>
-    <div class="stat"><small>BXH cập nhật</small><b id="sDate">--/--/----</b></div>
-    <div class="stat"><small>Trạng thái</small><b style="color:#18a957">● Online</b></div>
-  </div>
-  <div class="card">
-    <div class="cardhead"><div><h2>Bảng xếp hạng</h2><div class="sub">Đơn nam • Đơn nữ • Đôi</div></div><input class="search" id="search" placeholder="🔎 Tìm tên thành viên..." oninput="render()"></div>
-    <div class="tabs">
-      <button class="tab active" onclick="setCategory('Đơn nam',this)">Đơn nam</button>
-      <button class="tab" onclick="setCategory('Đơn nữ',this)">Đơn nữ</button>
-      <button class="tab" onclick="setCategory('Đôi nam',this)">Đôi nam</button>
-      <button class="tab" onclick="setCategory('Đôi nữ',this)">Đôi nữ</button>
-      <button class="tab" onclick="setCategory('Đôi nam nữ',this)">Đôi nam nữ</button>
+  <!-- ==================== HEADER ==================== -->
+  <header class="bwf-header">
+    <div class="top-bar">
+      <div class="container">
+        <div id="sync-status-indicator" class="sync-status-pill">
+          <span class="sync-dot"></span>
+          <span>Realtime Sync: Đang kết nối</span>
+        </div>
+        <div style="color: #cbd5e1; font-size: 0.75rem;">
+          <i class="fa-solid fa-trophy" style="color: var(--bwf-gold);"></i> Hệ thống bảng xếp hạng tiêu chuẩn BWF • THPT Đoàn Thượng
+        </div>
+      </div>
     </div>
-    <div class="tablewrap"><table><thead><tr><th>Hạng</th><th>Vận động viên</th><th>Lớp</th><th>Điểm</th><th>Phong độ</th></tr></thead><tbody id="ranking"></tbody></table></div>
-  </div>
-</section>
 
-<section id="players" class="page">
- <div class="card">
-  <div class="cardhead"><h2>Thành viên CLB</h2><input class="search" id="search2" placeholder="🔎 Tìm thành viên..." oninput="renderPlayers()"></div>
-  <div class="tablewrap"><table><thead><tr><th>Hạng</th><th>Thành viên</th><th>Giới tính</th><th>Loại</th><th>Điểm</th><th></th></tr></thead><tbody id="playersTable"></tbody></table></div>
- </div>
-</section>
+    <div class="main-nav">
+      <div class="container nav-container">
+        <!-- Logo -->
+        <a class="brand-logo" onclick="app.navigate('rankings')">
+          <div class="brand-icon">🏸</div>
+          <div class="brand-text">
+            <h1>Đoàn Thượng Badminton</h1>
+            <p>BWF Ranking & Social Platform</p>
+          </div>
+        </a>
 
-<section id="admin" class="page">
- <div id="loginBox" class="login">
-   <h2>🔐 Admin đăng nhập</h2>
-   <p class="sub" style="text-align:center">Quản trị BXH Đoàn Thượng Badminton</p>
-   <div class="field"><label>TÀI KHOẢN</label><input id="user" value="admin"></div>
-   <div class="field"><label>MẬT KHẨU</label><input id="pass" type="password" placeholder="Nhập mật khẩu"></div>
-   <button class="btn primary" style="width:100%" onclick="login()">Đăng nhập</button>
-   <p class="hint">Demo: tài khoản <b>admin</b> • mật khẩu <b>123456</b>. Khi đưa website lên mạng, hãy chuyển xác thực sang backend/database để bảo mật.</p>
- </div>
- <div id="dashboard" style="display:none">
-   <div class="card">
-    <div class="adminbar"><span>⚙️ ADMIN PANEL</span><button class="btn ghost" onclick="logout()">Đăng xuất</button></div>
-    <div class="cardhead"><h2>Thêm thành viên</h2></div>
-    <div class="formgrid">
-      <div class="field"><label>HỌ VÀ TÊN</label><input id="n" placeholder="Nguyễn Văn A"></div>
-      <div class="field"><label>LỚP</label><input id="cl" placeholder="10A1"></div>
-      <div class="field"><label>GIỚI TÍNH</label><select id="g"><option>Nam</option><option>Nữ</option></select></div>
-      <div class="field"><label>NỘI DUNG</label><select id="cat"><option>Đơn nam</option><option>Đơn nữ</option><option>Đôi nam</option><option>Đôi nữ</option><option>Đôi nam nữ</option></select></div>
-      <div class="field"><label>ĐIỂM BAN ĐẦU</label><input id="p" type="number" value="0"></div>
-      <div class="field" style="display:flex;align-items:end"><button class="btn success" style="width:100%" onclick="addPlayer()">＋ Thêm thành viên</button></div>
+        <!-- Mobile Toggle Button -->
+        <button class="mobile-toggle-btn" id="mobile-toggle-btn">
+          <i class="fa-solid fa-bars"></i>
+        </button>
+
+        <!-- Navigation Links -->
+        <ul class="nav-links" id="nav-links">
+          <li>
+            <button class="nav-item-btn active" data-view="rankings" onclick="app.navigate('rankings')">
+              <i class="fa-solid fa-ranking-star"></i> Bảng Xếp Hạng
+            </button>
+          </li>
+          <li>
+            <button class="nav-item-btn" data-view="matchmaking" onclick="app.navigate('matchmaking')">
+              <i class="fa-solid fa-handshake-simple"></i> Ghép Trận
+            </button>
+          </li>
+          <li>
+            <button class="nav-item-btn" data-view="doubles" onclick="app.navigate('doubles')">
+              <i class="fa-solid fa-user-group"></i> Ghép Đôi
+            </button>
+          </li>
+          <li>
+            <button class="nav-item-btn" data-view="friends" onclick="app.navigate('friends')">
+              <i class="fa-solid fa-comments"></i> Bạn Bè & Chat
+            </button>
+          </li>
+          <li>
+            <button class="nav-item-btn" data-view="news" onclick="app.navigate('news')">
+              <i class="fa-regular fa-newspaper"></i> Tin Tức & Tài Liệu
+            </button>
+          </li>
+          <li id="nav-admin-btn" style="display: none;">
+            <button class="nav-item-btn" data-view="admin" onclick="app.navigate('admin')" style="background: rgba(217, 4, 41, 0.2); color: #ff8fa3; border: 1px solid rgba(217, 4, 41, 0.4);">
+              <i class="fa-solid fa-shield-halved"></i> Quản Trị BQT
+            </button>
+          </li>
+        </ul>
+
+        <!-- User Authentication Actions -->
+        <div class="user-nav-actions">
+          <!-- Logged out state -->
+          <div id="auth-logged-out" style="display: flex; gap: 8px;">
+            <button class="btn btn-outline btn-sm" onclick="app.openModal('modal-login')">
+              <i class="fa-solid fa-right-to-bracket"></i> Đăng Nhập
+            </button>
+            <button class="btn btn-gold btn-sm" onclick="app.openModal('modal-register')">
+              <i class="fa-solid fa-user-plus"></i> Đăng Ký
+            </button>
+          </div>
+
+          <!-- Logged in state -->
+          <div id="auth-logged-in" style="display: none; align-items: center; gap: 10px;">
+            <div class="user-profile-menu" onclick="app.openModal('modal-change-password')" title="Bấm để đổi mật khẩu">
+              <div class="user-avatar-sm" id="user-avatar-sm">M</div>
+              <div class="user-meta">
+                <span class="user-name" id="user-display-name">Nguyễn Đức Nhật Minh</span>
+                <span class="user-role" id="user-display-role">🛡️ Admin BQT</span>
+              </div>
+            </div>
+            <button class="btn btn-outline btn-sm" style="padding: 6px 10px;" onclick="authManager.logout()" title="Đăng xuất">
+              <i class="fa-solid fa-power-off"></i>
+            </button>
+          </div>
+        </div>
+      </div>
     </div>
-   </div>
-   <div class="card">
-    <div class="cardhead"><h2>Quản lý điểm & thành viên</h2></div>
-    <div class="tablewrap"><table><thead><tr><th>VĐV</th><th>Nội dung</th><th>Điểm</th><th>Cộng / Trừ</th><th>Xóa</th></tr></thead><tbody id="adminTable"></tbody></table></div>
-   </div>
- </div>
-</section>
-</main>
-<footer>© 2026 Đoàn Thượng Badminton • Hệ thống xếp hạng nội bộ CLB</footer>
-<div class="toast" id="toast"></div>
+  </header>
 
-<script>
-const KEY='dtb_players_v1';
-let players=JSON.parse(localStorage.getItem(KEY)||'null')||[
- {id:1,n:'Nguyễn Đức Nhật Minh',cl:'10A1',g:'Nam',cat:'Đơn nam',p:1250,d:80},
- {id:2,n:'Trần Minh Anh',cl:'10A2',g:'Nam',cat:'Đơn nam',p:1100,d:40},
- {id:3,n:'Phạm Khánh Mai',cl:'10A1',g:'Nữ',cat:'Đơn nữ',p:980,d:55},
- {id:4,n:'Nguyễn Văn Nam',cl:'10A3',g:'Nam',cat:'Đơn nam',p:900,d:-20},
- {id:5,n:'Lê Hoàng Long',cl:'10A2',g:'Nam',cat:'Đôi nam',p:850,d:35},
- {id:6,n:'Đỗ Ngọc Lan',cl:'10A4',g:'Nữ',cat:'Đơn nữ',p:820,d:15}
-];
-let category='Đơn nam';
-function save(){localStorage.setItem(KEY,JSON.stringify(players));}
-function fmt(x){return Number(x).toLocaleString('vi-VN')}
-function initials(n){return n.split(' ').slice(-2).map(x=>x[0]).join('').toUpperCase().slice(0,2)}
-function sorted(cat){return players.filter(x=>x.cat===cat).sort((a,b)=>b.p-a.p)}
-function render(){
- let q=(document.getElementById('search')?.value||'').toLowerCase();
- let a=sorted(category).filter(x=>x.n.toLowerCase().includes(q));
- document.getElementById('ranking').innerHTML=a.length?a.map((x,i)=>`<tr><td class="rank">${i<3?['🥇','🥈','🥉'][i]:i+1}</td><td><div class="player"><div class="avatar">${initials(x.n)}</div><div><div class="pname">${x.n}</div><div class="sub">${x.g}</div></div></div></td><td>${x.cl}</td><td class="points">${fmt(x.p)}</td><td class="${x.d>=0?'up':'down'}">${x.d>=0?'▲ +':'▼ '}${fmt(Math.abs(x.d))}</td></tr>`).join(''):`<tr><td colspan="5" style="text-align:center;padding:35px">Chưa có thành viên ở nội dung này.</td></tr>`;
- document.getElementById('sPlayers').textContent=players.length;
- document.getElementById('sPoints').textContent=fmt(players.reduce((s,x)=>s+x.p,0));
- document.getElementById('sDate').textContent=new Date().toLocaleDateString('vi-VN');
-}
-function renderPlayers(){
- let q=(document.getElementById('search2')?.value||'').toLowerCase();
- let a=players.filter(x=>x.n.toLowerCase().includes(q)).sort((a,b)=>b.p-a.p);
- document.getElementById('playersTable').innerHTML=a.map((x,i)=>`<tr><td class="rank">${i+1}</td><td><div class="player"><div class="avatar">${initials(x.n)}</div><b>${x.n}</b></div></td><td>${x.g}</td><td>${x.cat}</td><td class="points">${fmt(x.p)}</td><td><button class="btn ghost" onclick="profile(${x.id})">Xem</button></td></tr>`).join('');
-}
-function renderAdmin(){
- document.getElementById('adminTable').innerHTML=players.sort((a,b)=>b.p-a.p).map(x=>`<tr><td><b>${x.n}</b><div class="sub">${x.cl}</div></td><td>${x.cat}</td><td class="points">${fmt(x.p)}</td><td><button class="btn success" onclick="change(${x.id},1)">+ Điểm</button> <button class="btn danger" onclick="change(${x.id},-1)">− Điểm</button></td><td><button class="btn danger" onclick="del(${x.id})">Xóa</button></td></tr>`).join('');
-}
-function setCategory(c,b){category=c;document.querySelectorAll('.tab').forEach(x=>x.classList.remove('active'));b.classList.add('active');render()}
-function showPage(id,b){
- document.querySelectorAll('.page').forEach(x=>x.classList.remove('active'));document.getElementById(id).classList.add('active');
- document.querySelectorAll('.nav button').forEach(x=>x.classList.remove('active'));if(b)b.classList.add('active');
- if(id==='players')renderPlayers();if(id==='admin')renderAdmin();
-}
-function login(){if(document.getElementById('user').value==='admin'&&document.getElementById('pass').value==='123456'){document.getElementById('loginBox').style.display='none';document.getElementById('dashboard').style.display='block';renderAdmin();toast('Đăng nhập thành công')}else alert('Sai tài khoản hoặc mật khẩu!')}
-function logout(){document.getElementById('dashboard').style.display='none';document.getElementById('loginBox').style.display='block'}
-function addPlayer(){
- let n=document.getElementById('n').value.trim(),cl=document.getElementById('cl').value.trim(),g=document.getElementById('g').value,cat=document.getElementById('cat').value,p=Number(document.getElementById('p').value)||0;
- if(!n||!cl)return alert('Vui lòng nhập họ tên và lớp.');
- players.push({id:Date.now(),n,cl,g,cat,p,d:0});save();render();renderAdmin();['n','cl'].forEach(id=>document.getElementById(id).value='');document.getElementById('p').value=0;toast('Đã thêm thành viên');
-}
-function change(id,dir){
- let x=players.find(x=>x.id===id);let v=prompt((dir>0?'Cộng':'Trừ')+' bao nhiêu điểm cho '+x.n+'?','50');if(v===null)return;v=Number(v);if(!Number.isFinite(v)||v<=0)return alert('Số điểm không hợp lệ.');
- x.p=Math.max(0,x.p+dir*v);x.d=dir*v;save();render();renderAdmin();toast('Đã cập nhật điểm cho '+x.n);
-}
-function del(id){let x=players.find(x=>x.id===id);if(confirm('Xóa '+x.n+' khỏi danh sách?')){players=players.filter(x=>x.id!==id);save();render();renderAdmin();toast('Đã xóa thành viên')}}
-function profile(id){let x=players.find(x=>x.id===id);alert(`${x.n}\nLớp: ${x.cl}\nNội dung: ${x.cat}\nĐiểm: ${fmt(x.p)}`)}
-function toast(t){let e=document.getElementById('toast');e.textContent=t;e.style.display='block';setTimeout(()=>e.style.display='none',1800)}
-render();
-</script>
+  <!-- ==================== HERO BANNER ==================== -->
+  <section class="bwf-hero">
+    <div class="container hero-content">
+      <div class="hero-title-group">
+        <span class="hero-badge">BWF World Ranking System • Season 2026</span>
+        <h2>ĐOÀN THƯỢNG BADMINTON</h2>
+        <p>Hệ thống xếp hạng tích điểm và cộng đồng kết nối cầu lông Trường THPT Đoàn Thượng. Cập nhật thứ hạng trực tiếp, ghép trận giao lưu và thi đấu các nội dung Đơn Nam, Đơn Nữ, Đôi Nam, Đôi Nữ và Đôi Nam Nữ.</p>
+      </div>
+      <div class="hero-stats">
+        <div class="stat-box">
+          <div class="stat-number" id="stat-total-members">6</div>
+          <div class="stat-label">Vận Động Viên</div>
+        </div>
+        <div class="stat-box">
+          <div class="stat-number" id="stat-total-pairs">3</div>
+          <div class="stat-label">Cặp Đôi Thi Đấu</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ==================== MAIN CONTENT BODY ==================== -->
+  <main class="main-content container">
+
+    <!-- ========================================================
+         VIEW 1: BẢNG XẾP HẠNG BWF (RANKINGS)
+         ======================================================== -->
+    <div id="view-rankings" class="app-view active-view">
+      <div class="ranking-controls-card">
+        <!-- 5 BWF Category Tabs -->
+        <div class="category-tabs">
+          <button class="cat-tab-btn active" data-category="MS">
+            <span>Đơn Nam</span> <span class="cat-code">MS</span>
+          </button>
+          <button class="cat-tab-btn" data-category="WS">
+            <span>Đơn Nữ</span> <span class="cat-code">WS</span>
+          </button>
+          <button class="cat-tab-btn" data-category="MD">
+            <span>Đôi Nam</span> <span class="cat-code">MD</span>
+          </button>
+          <button class="cat-tab-btn" data-category="WD">
+            <span>Đôi Nữ</span> <span class="cat-code">WD</span>
+          </button>
+          <button class="cat-tab-btn" data-category="XD">
+            <span>Đôi Nam Nữ</span> <span class="cat-code">XD</span>
+          </button>
+        </div>
+
+        <div class="table-sub-header">
+          <div class="search-box">
+            <i class="fa-solid fa-magnifying-glass"></i>
+            <input type="text" id="ranking-search-input" placeholder="Tìm theo tên VĐV, lớp...">
+          </div>
+          <div style="font-size: 0.85rem; color: #64748b;">
+            <i class="fa-solid fa-clock-rotate-left"></i> Dữ liệu tự động đồng bộ thời gian thực
+          </div>
+        </div>
+      </div>
+
+      <!-- BWF Ranking Leaderboard Table -->
+      <div class="bwf-table-container">
+        <table class="bwf-table">
+          <thead>
+            <tr>
+              <th style="width: 80px; text-align: center;">Hạng</th>
+              <th style="width: 70px; text-align: center;">+/-</th>
+              <th id="th-player-header">Vận Động Viên (Đơn)</th>
+              <th>Lớp / Chi Đoàn</th>
+              <th style="text-align: center;">Số Giải Đã Đấu</th>
+              <th style="text-align: right; padding-right: 24px;">Tổng Điểm BWF</th>
+            </tr>
+          </thead>
+          <tbody id="bwf-ranking-tbody">
+            <!-- Rendered by ranking.js -->
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ========================================================
+         VIEW 2: GHÉP TRẬN CẦU LÔNG (MATCHMAKING)
+         ======================================================== -->
+    <div id="view-matchmaking" class="app-view">
+      <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px; margin-bottom: 20px;">
+        <div>
+          <h2 style="font-size: 1.5rem; font-weight: 800; color: var(--bwf-navy-dark);">🏸 Sảnh Ghép Trận Cầu Lông</h2>
+          <p style="color: var(--bwf-gray-text); font-size: 0.9rem;">Tìm đối thủ, bạn đánh cặp và tham gia các buổi giao lưu thể thao.</p>
+        </div>
+        <button class="btn btn-primary" onclick="app.openModal('modal-create-match')">
+          <i class="fa-solid fa-circle-plus"></i> Đăng Kèo Ghép Trận Mới
+        </button>
+      </div>
+
+      <div id="match-list-grid" class="match-grid">
+        <!-- Rendered by matchmaking.js -->
+      </div>
+    </div>
+
+    <!-- ========================================================
+         VIEW 3: GHÉP ĐÔI THI ĐẤU (DOUBLES PAIR APPROVAL)
+         ======================================================== -->
+    <div id="view-doubles" class="app-view">
+      <div class="doubles-banner">
+        <div>
+          <h3 style="font-size: 1.3rem; font-weight: 800; margin-bottom: 4px;">🤝 Quy Tắc Xếp Hạng Đôi (BWF Doubles)</h3>
+          <p style="font-size: 0.9rem; opacity: 0.95;">Để một cặp đôi (Đôi Nam, Đôi Nữ, Đôi Nam Nữ) được lên Bảng Xếp Hạng, 2 bạn <strong>phải kết bạn</strong> và <strong>cả hai bạn đều phải bấm đồng ý chấp thuận</strong>.</p>
+        </div>
+      </div>
+
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 24px;">
+        <!-- Left: Form Gửi Lời Mời Ghép Đôi -->
+        <div style="background: white; border-radius: var(--radius-lg); border: 1px solid var(--bwf-gray-border); padding: 24px; box-shadow: var(--shadow-sm);">
+          <h3 style="font-size: 1.15rem; font-weight: 800; color: var(--bwf-navy-dark); margin-bottom: 16px;">
+            <i class="fa-solid fa-paper-plane" style="color: var(--bwf-red);"></i> Gửi Lời Mời Ghép Đôi
+          </h3>
+
+          <form id="form-send-pair-request" onsubmit="event.preventDefault(); doublesManager.sendPairRequest(document.getElementById('doubles-partner-select').value, document.getElementById('doubles-category-select').value).then(() => { app.showToast('Đã gửi lời mời ghép đôi tới bạn của bạn!', 'success'); }).catch(e => alert(e.message));">
+            <div class="form-group">
+              <label class="form-label">Chọn nội dung thi đấu đôi:</label>
+              <select id="doubles-category-select" class="form-select">
+                <option value="MD">Đôi Nam (Men's Doubles - MD)</option>
+                <option value="WD">Đôi Nữ (Women's Doubles - WD)</option>
+                <option value="XD">Đôi Nam Nữ (Mixed Doubles - XD)</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Chọn bạn đánh cặp (Từ danh sách Bạn bè):</label>
+              <select id="doubles-partner-select" class="form-select" required>
+                <!-- Rendered dynamically -->
+              </select>
+              <span style="font-size: 0.75rem; color: #94a3b8; margin-top: 4px; display: block;">Lưu ý: Bạn phải kết bạn với người đó trước trong mục "Bạn bè & Chat".</span>
+            </div>
+
+            <button type="submit" class="btn btn-primary" style="width: 100%;">
+              <i class="fa-solid fa-user-plus"></i> Gửi Yêu Cầu Ghép Đôi
+            </button>
+          </form>
+        </div>
+
+        <!-- Right: Lời mời đang chờ & Cặp đôi của tôi -->
+        <div style="display: flex; flex-direction: column; gap: 20px;">
+          <!-- Lời mời chờ bạn duyệt -->
+          <div style="background: white; border-radius: var(--radius-lg); border: 1px solid var(--bwf-gray-border); padding: 20px; box-shadow: var(--shadow-sm);">
+            <h3 style="font-size: 1.1rem; font-weight: 800; color: var(--bwf-navy-dark); margin-bottom: 12px;">
+              <i class="fa-solid fa-bell" style="color: var(--bwf-gold);"></i> Lời Mời Ghép Đôi Đang Chờ Bạn Duyệt
+            </h3>
+            <div id="doubles-pending-requests">
+              <!-- Rendered by doubles.js -->
+            </div>
+          </div>
+
+          <!-- Danh sách cặp đôi của tôi đã xác nhận -->
+          <div style="background: white; border-radius: var(--radius-lg); border: 1px solid var(--bwf-gray-border); padding: 20px; box-shadow: var(--shadow-sm);">
+            <h3 style="font-size: 1.1rem; font-weight: 800; color: var(--bwf-navy-dark); margin-bottom: 12px;">
+              <i class="fa-solid fa-award" style="color: var(--bwf-green);"></i> Cặp Đôi Của Bạn Đang Trên Bảng Xếp Hạng
+            </h3>
+            <div id="my-approved-pairs-list">
+              <!-- Rendered by doubles.js -->
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ========================================================
+         VIEW 4: BẠN BÈ & TRÒ CHUYỆN TRỰC TUYẾN (FRIENDS & CHAT)
+         ======================================================== -->
+    <div id="view-friends" class="app-view">
+      <div class="social-layout">
+        <!-- Sidebar Danh Sách Bạn Bè -->
+        <div class="friends-sidebar">
+          <div class="sidebar-header">
+            <h3>
+              <span>💬 Kết Nối & Chat</span>
+            </h3>
+            <div class="social-tabs">
+              <button class="social-tab-btn active" data-tab="friends" onclick="friendsChatManager.setFriendTab('friends')">Bạn bè</button>
+              <button class="social-tab-btn" data-tab="find" onclick="friendsChatManager.setFriendTab('find')">Tìm bạn</button>
+              <button class="social-tab-btn" data-tab="requests" onclick="friendsChatManager.setFriendTab('requests')">Lời mời</button>
+            </div>
+          </div>
+
+          <div id="friends-sidebar-content" class="friends-list-container">
+            <!-- Rendered by friends_chat.js -->
+          </div>
+        </div>
+
+        <!-- Chat Area -->
+        <div class="chat-main">
+          <!-- Placeholder when no partner selected -->
+          <div id="no-chat-placeholder" style="height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; color: #94a3b8; padding: 20px;">
+            <i class="fa-solid fa-comments" style="font-size: 4rem; color: #cbd5e1; margin-bottom: 16px;"></i>
+            <h3 style="color: var(--bwf-dark-text); margin-bottom: 6px;">Trò Chuyện Trực Tuyến Thời Gian Thực</h3>
+            <p>Chọn một người bạn ở danh sách bên trái để bắt đầu nhắn tin trao đổi về cầu lông và xếp trận!</p>
+          </div>
+
+          <!-- Active Chat Window -->
+          <div id="chat-window-container" class="chat-window" style="display: none;">
+            <div class="chat-header">
+              <div class="chat-partner-info">
+                <div class="player-avatar" id="chat-partner-avatar" style="width: 38px; height: 38px;">M</div>
+                <div>
+                  <h4 id="chat-partner-name" style="font-size: 0.95rem; font-weight: 700; color: var(--bwf-navy-dark);">Nguyễn Văn A</h4>
+                  <span id="chat-partner-meta" style="font-size: 0.75rem; color: var(--bwf-gray-text);">Lớp 12A1</span>
+                </div>
+              </div>
+            </div>
+
+            <div id="chat-messages-area" class="chat-messages-area">
+              <!-- Rendered by friends_chat.js -->
+            </div>
+
+            <form class="chat-input-bar" onsubmit="event.preventDefault(); const input = document.getElementById('chat-text-input'); friendsChatManager.sendMessage(input.value); input.value = '';">
+              <input type="text" id="chat-text-input" placeholder="Nhập tin nhắn..." autocomplete="off">
+              <button type="submit" class="btn btn-primary" style="border-radius: var(--radius-full); padding: 8px 16px;">
+                <i class="fa-solid fa-paper-plane"></i> Gửi
+              </button>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ========================================================
+         VIEW 5: TIN TỨC & TÀI LIỆU (NEWS & DOCUMENTS)
+         ======================================================== -->
+    <div id="view-news" class="app-view">
+      <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px; margin-bottom: 24px;">
+        <div>
+          <h2 style="font-size: 1.5rem; font-weight: 800; color: var(--bwf-navy-dark);">📢 Tin Tức, Thông Báo & Tài Liệu</h2>
+          <p style="color: var(--bwf-gray-text); font-size: 0.9rem;">Cập nhật thông báo giải đấu, điều lệ thi đấu và tải tài liệu chính thức từ Ban Quản Trị.</p>
+        </div>
+        <button class="btn btn-primary" onclick="if(!authManager.isAdmin()){ app.showToast('Chỉ Admin mới có quyền đăng bài viết!', 'error'); } else { app.openModal('modal-create-news'); }">
+          <i class="fa-solid fa-cloud-arrow-up"></i> Đăng Bài Viết & Tài Liệu
+        </button>
+      </div>
+
+      <div id="news-posts-grid" class="news-grid">
+        <!-- Rendered by news.js -->
+      </div>
+    </div>
+
+    <!-- ========================================================
+         VIEW 6: BẢNG QUẢN TRỊ ADMIN (ADMIN PANEL)
+         ======================================================== -->
+    <div id="view-admin" class="app-view">
+      <div style="margin-bottom: 20px;">
+        <h2 style="font-size: 1.5rem; font-weight: 800; color: var(--bwf-navy-dark);">
+          🛡️ Bảng Điều Khiển Ban Quản Trị (Admin Panel)
+        </h2>
+        <p style="color: var(--bwf-gray-text); font-size: 0.9rem;">
+          Dành riêng cho 2 Quản trị viên: <strong>Nguyễn Đức Nhật Minh</strong> & <strong>Nguyễn Đức Hiếu</strong>.
+        </p>
+      </div>
+
+      <div class="admin-grid">
+        <!-- Admin Menu -->
+        <div class="admin-menu-card">
+          <button class="admin-menu-btn active" data-section="points" onclick="adminManager.setSection('points')">
+            <i class="fa-solid fa-calculator"></i> Cộng / Trừ Điểm BWF
+          </button>
+          <button class="admin-menu-btn" data-section="members" onclick="adminManager.setSection('members')">
+            <i class="fa-solid fa-users-gear"></i> Quản Lý Thành Viên
+          </button>
+          <button class="admin-menu-btn" data-section="pairs" onclick="adminManager.setSection('pairs')">
+            <i class="fa-solid fa-people-arrows"></i> Quản Lý Cặp Đôi
+          </button>
+          <button class="admin-menu-btn" data-section="sync" onclick="adminManager.setSection('sync')">
+            <i class="fa-solid fa-cloud"></i> Cấu Hình Realtime Sync
+          </button>
+        </div>
+
+        <!-- Admin Content Panels -->
+        <div class="admin-panel-box">
+          <!-- 1. Cộng / Trừ điểm -->
+          <div class="admin-sub-section" data-section="points">
+            <h3 style="font-size: 1.2rem; font-weight: 800; color: var(--bwf-navy-dark); margin-bottom: 16px;">
+              🏸 Cộng / Trừ Điểm Xếp Hạng BWF
+            </h3>
+            <form onsubmit="event.preventDefault(); adminManager.submitPointAdjustment({
+              targetType: document.getElementById('admin-point-target-type').value,
+              targetId: document.getElementById('admin-point-target-select').value,
+              action: document.getElementById('admin-point-action').value,
+              amount: document.getElementById('admin-point-amount').value,
+              tournamentName: document.getElementById('admin-point-tour-name').value,
+              reason: document.getElementById('admin-point-reason').value
+            });">
+              <div class="form-grid-2">
+                <div class="form-group">
+                  <label class="form-label">Loại đối tượng:</label>
+                  <select id="admin-point-target-type" class="form-select" onchange="adminManager.renderPointsSection()">
+                    <option value="single">Vận Động Viên Đơn (MS / WS)</option>
+                    <option value="pair">Cặp Đôi (MD / WD / XD)</option>
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label class="form-label">Chọn VĐV / Cặp đôi nhận điểm:</label>
+                  <select id="admin-point-target-select" class="form-select" required>
+                    <!-- Options -->
+                  </select>
+                </div>
+              </div>
+
+              <div class="form-grid-2">
+                <div class="form-group">
+                  <label class="form-label">Hành động:</label>
+                  <select id="admin-point-action" class="form-select">
+                    <option value="add">➕ Cộng Điểm Thưởng</option>
+                    <option value="sub">➖ Trừ Điểm Phạt</option>
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label class="form-label">Số điểm (PTS):</label>
+                  <input type="number" id="admin-point-amount" class="form-input" placeholder="VD: 2500" required min="1">
+                </div>
+              </div>
+
+              <div class="form-group">
+                <label class="form-label">Tên giải đấu / Sự kiện:</label>
+                <input type="text" id="admin-point-tour-name" class="form-input" placeholder="VD: Giải Cầu Lông Đoàn Thượng Mở Rộng 2026">
+              </div>
+
+              <div class="form-group">
+                <label class="form-label">Lý do / Thành tích đạt được:</label>
+                <input type="text" id="admin-point-reason" class="form-input" placeholder="VD: Vô địch Đơn Nam / Thắng trận vòng bảng">
+              </div>
+
+              <button type="submit" class="btn btn-primary btn-lg" style="width: 100%;">
+                <i class="fa-solid fa-check-circle"></i> Cập Nhật Thứ Hạng Ngay
+              </button>
+            </form>
+          </div>
+
+          <!-- 2. Quản lý thành viên -->
+          <div class="admin-sub-section" data-section="members" style="display: none;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+              <h3 style="font-size: 1.2rem; font-weight: 800; color: var(--bwf-navy-dark);">
+                👥 Danh Sách Học Sinh & Thành Viên
+              </h3>
+              <button class="btn btn-primary btn-sm" onclick="app.openModal('modal-admin-add-member')">
+                <i class="fa-solid fa-user-plus"></i> Thêm Thành Viên Mới
+              </button>
+            </div>
+
+            <div class="bwf-table-container">
+              <table class="bwf-table">
+                <thead>
+                  <tr>
+                    <th>Họ Tên / Username</th>
+                    <th>Lớp</th>
+                    <th>Giới Tính</th>
+                    <th>Vai Trò</th>
+                    <th>Điểm Hiện Tại</th>
+                    <th>Thao Tác</th>
+                  </tr>
+                </thead>
+                <tbody id="admin-members-tbody">
+                  <!-- Rendered by admin.js -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- 3. Quản lý cặp đôi -->
+          <div class="admin-sub-section" data-section="pairs" style="display: none;">
+            <h3 style="font-size: 1.2rem; font-weight: 800; color: var(--bwf-navy-dark); margin-bottom: 16px;">
+              🏸 Danh Sách Cặp Đôi Đã Xác Nhận
+            </h3>
+            <div class="bwf-table-container">
+              <table class="bwf-table">
+                <thead>
+                  <tr>
+                    <th>Nội Dung</th>
+                    <th>Vận Động Viên 1</th>
+                    <th>Vận Động Viên 2</th>
+                    <th>Trạng Thái</th>
+                    <th>Điểm Cặp</th>
+                    <th>Thao Tác</th>
+                  </tr>
+                </thead>
+                <tbody id="admin-pairs-tbody">
+                  <!-- Rendered by admin.js -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- 4. Cấu hình Realtime Firebase -->
+          <div class="admin-sub-section" data-section="sync" style="display: none;">
+            <h3 style="font-size: 1.2rem; font-weight: 800; color: var(--bwf-navy-dark); margin-bottom: 8px;">
+              ☁️ Cấu Hình Máy Chủ Thời Gian Thực (Firebase Realtime DB)
+            </h3>
+            <p style="font-size: 0.88rem; color: #64748b; margin-bottom: 16px;">
+              Hệ thống hiện tại đã tích hợp sẵn cơ chế đồng bộ trực tuyến. Nếu bạn muốn kết nối vào dự án Firebase riêng của bạn để quản lý cơ sở dữ liệu vĩnh viễn trên đám mây, hãy dán chuỗi JSON cấu hình Firebase bên dưới:
+            </p>
+
+            <div class="form-group">
+              <label class="form-label">Firebase Config JSON:</label>
+              <textarea id="admin-custom-firebase-input" class="form-textarea" rows="7" placeholder='{ "apiKey": "...", "authDomain": "...", "databaseURL": "https://...", "projectId": "..." }'></textarea>
+            </div>
+
+            <div style="display: flex; gap: 10px;">
+              <button class="btn btn-primary" onclick="adminManager.saveCustomFirebaseConfig()">
+                <i class="fa-solid fa-floppy-disk"></i> Lưu Cấu Hình & Tải Lại
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </main>
+
+  <!-- ==================== FOOTER ==================== -->
+  <footer class="bwf-footer">
+    <div class="container footer-container">
+      <div>
+        <h4 style="color: white; font-size: 1rem; font-weight: 800; margin-bottom: 4px;">ĐOÀN THƯỢNG BADMINTON</h4>
+        <p>Hệ thống xếp hạng cầu lông BWF trực tuyến • Trường THPT Đoàn Thượng</p>
+      </div>
+      <div>
+        <p>Hệ thống hỗ trợ đồng bộ trực tuyến 24/7 trên mọi thiết bị</p>
+      </div>
+    </div>
+  </footer>
+
+  <!-- ========================================================
+       MODALS
+       ======================================================== -->
+
+  <!-- 1. MODAL ĐĂNG NHẬP -->
+  <div id="modal-login" class="modal-backdrop">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3><i class="fa-solid fa-right-to-bracket"></i> Đăng Nhập Tài Khoản</h3>
+        <button class="modal-close-btn">&times;</button>
+      </div>
+      <div class="modal-body">
+        <form onsubmit="event.preventDefault(); authManager.login(document.getElementById('login-username').value, document.getElementById('login-password').value).then(() => { app.closeModal('modal-login'); app.showToast('Đăng nhập thành công!', 'success'); }).catch(e => alert(e.message));">
+          <div class="form-group">
+            <label class="form-label">Tên đăng nhập:</label>
+            <input type="text" id="login-username" class="form-input" placeholder="Nhập tên đăng nhập của bạn..." required>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Mật khẩu:</label>
+            <input type="password" id="login-password" class="form-input" placeholder="Nhập mật khẩu..." required>
+          </div>
+
+          <button type="submit" class="btn btn-primary" style="width: 100%;">
+            Đăng Nhập Ngay
+          </button>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- 2. MODAL ĐĂNG KÝ HỌC SINH -->
+  <div id="modal-register" class="modal-backdrop">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3><i class="fa-solid fa-user-plus"></i> Đăng Ký Tài Khoản Học Sinh</h3>
+        <button class="modal-close-btn">&times;</button>
+      </div>
+      <div class="modal-body">
+        <form onsubmit="event.preventDefault(); authManager.register({
+          fullName: document.getElementById('reg-fullname').value,
+          username: document.getElementById('reg-username').value,
+          password: document.getElementById('reg-password').value,
+          classGroup: document.getElementById('reg-class').value,
+          gender: document.getElementById('reg-gender').value,
+          dominantHand: document.getElementById('reg-hand').value
+        }).then(() => { app.closeModal('modal-register'); app.showToast('Đăng ký tài khoản thành công!', 'success'); }).catch(e => alert(e.message));">
+          <div class="form-group">
+            <label class="form-label">Họ và tên đầy đủ:</label>
+            <input type="text" id="reg-fullname" class="form-input" placeholder="VD: Nguyễn Văn Anh" required>
+          </div>
+          <div class="form-grid-2">
+            <div class="form-group">
+              <label class="form-label">Tên đăng nhập:</label>
+              <input type="text" id="reg-username" class="form-input" placeholder="VD: vananh12a1" required>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Mật khẩu:</label>
+              <input type="password" id="reg-password" class="form-input" placeholder="Mật khẩu ít nhất 4 ký tự" required>
+            </div>
+          </div>
+          <div class="form-grid-2">
+            <div class="form-group">
+              <label class="form-label">Lớp / Chi đoàn:</label>
+              <input type="text" id="reg-class" class="form-input" placeholder="VD: 12A1 / 11B2" required>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Giới tính:</label>
+              <select id="reg-gender" class="form-select">
+                <option value="nam">Nam (Đơn Nam / Đôi Nam / XD)</option>
+                <option value="nu">Nữ (Đơn Nữ / Đôi Nữ / XD)</option>
+              </select>
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Tay thuận:</label>
+            <select id="reg-hand" class="form-select">
+              <option value="Phải">Tay phải</option>
+              <option value="Trái">Tay trái</option>
+            </select>
+          </div>
+
+          <button type="submit" class="btn btn-gold" style="width: 100%;">
+            Tạo Tài Khoản & Bắt Đầu
+          </button>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- 3. MODAL ĐỔI MẬT KHẨU -->
+  <div id="modal-change-password" class="modal-backdrop">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3><i class="fa-solid fa-key"></i> Đổi Mật Khẩu Tài Khoản</h3>
+        <button class="modal-close-btn">&times;</button>
+      </div>
+      <div class="modal-body">
+        <form onsubmit="event.preventDefault(); authManager.changePassword(
+          document.getElementById('cp-old-pass').value,
+          document.getElementById('cp-new-pass').value,
+          document.getElementById('cp-confirm-pass').value
+        ).then(() => { app.closeModal('modal-change-password'); app.showToast('Đổi mật khẩu thành công!', 'success'); }).catch(e => alert(e.message));">
+          <div class="form-group">
+            <label class="form-label">Mật khẩu hiện tại:</label>
+            <input type="password" id="cp-old-pass" class="form-input" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Mật khẩu mới:</label>
+            <input type="password" id="cp-new-pass" class="form-input" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Xác nhận mật khẩu mới:</label>
+            <input type="password" id="cp-confirm-pass" class="form-input" required>
+          </div>
+          <button type="submit" class="btn btn-primary" style="width: 100%;">
+            Lưu Mật Khẩu Mới
+          </button>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- 4. MODAL ĐĂNG KÈO GHÉP TRẬN -->
+  <div id="modal-create-match" class="modal-backdrop">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3><i class="fa-solid fa-plus-circle"></i> Đăng Kèo Ghép Trận Cầu Lông</h3>
+        <button class="modal-close-btn">&times;</button>
+      </div>
+      <div class="modal-body">
+        <form onsubmit="event.preventDefault(); matchmakingManager.createMatch({
+          title: document.getElementById('match-title').value,
+          timeFrame: document.getElementById('match-time').value,
+          location: document.getElementById('match-location').value,
+          category: document.getElementById('match-cat').value,
+          maxPlayers: document.getElementById('match-max-players').value,
+          level: document.getElementById('match-level').value,
+          notes: document.getElementById('match-notes').value
+        }).then(() => { app.closeModal('modal-create-match'); app.showToast('Đăng bài ghép trận thành công!', 'success'); }).catch(e => alert(e.message));">
+          <div class="form-group">
+            <label class="form-label">Tiêu đề bài đăng:</label>
+            <input type="text" id="match-title" class="form-input" placeholder="VD: Giao lưu cầu lông chiều thứ 7" required>
+          </div>
+          <div class="form-grid-2">
+            <div class="form-group">
+              <label class="form-label">Khung giờ:</label>
+              <input type="text" id="match-time" class="form-input" placeholder="VD: 16:30 - 18:30 Chiều nay" required>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Địa điểm sân:</label>
+              <input type="text" id="match-location" class="form-input" placeholder="VD: Sân thể chất Đoàn Thượng" required>
+            </div>
+          </div>
+          <div class="form-grid-2">
+            <div class="form-group">
+              <label class="form-label">Thể loại:</label>
+              <select id="match-cat" class="form-select">
+                <option value="Đôi Nam">Đôi Nam</option>
+                <option value="Đôi Nữ">Đôi Nữ</option>
+                <option value="Đôi Nam Nữ">Đôi Nam Nữ</option>
+                <option value="Đơn Nam">Đơn Nam</option>
+                <option value="Đơn Nữ">Đơn Nữ</option>
+                <option value="Giao lưu tự do">Giao lưu tự do</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Số người tối đa:</label>
+              <select id="match-max-players" class="form-select">
+                <option value="4">4 người (Đánh đôi)</option>
+                <option value="2">2 người (Đánh đơn)</option>
+                <option value="6">6 người (Đánh xoay tua)</option>
+              </select>
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Trình độ mong muốn:</label>
+            <input type="text" id="match-level" class="form-input" placeholder="VD: Phong trào / Khá / Vui vẻ">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Ghi chú thêm:</label>
+            <textarea id="match-notes" class="form-textarea" rows="3" placeholder="Mang theo vợt, chuẩn bị cầu lông..."></textarea>
+          </div>
+          <button type="submit" class="btn btn-primary" style="width: 100%;">
+            Đăng Kèo Ngay
+          </button>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- 5. MODAL ADMIN ĐĂNG TIN TỨC & TÀI LIỆU -->
+  <div id="modal-create-news" class="modal-backdrop">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3><i class="fa-regular fa-newspaper"></i> Đăng Tin Tức, Hình Ảnh & Tài Liệu (Admin)</h3>
+        <button class="modal-close-btn">&times;</button>
+      </div>
+      <div class="modal-body">
+        <form id="form-create-news" onsubmit="event.preventDefault(); handleCreateNewsSubmit();">
+          <div class="form-group">
+            <label class="form-label">Tiêu đề bài viết:</label>
+            <input type="text" id="news-input-title" class="form-input" placeholder="VD: Thông báo lịch thi đấu giải Cầu lông..." required>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Chuyên mục:</label>
+            <select id="news-input-cat" class="form-select">
+              <option value="Giải đấu">Giải đấu</option>
+              <option value="Thông báo">Thông báo</option>
+              <option value="Điều lệ">Điều lệ</option>
+              <option value="Tin hoạt động">Tin hoạt động</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Nội dung chi tiết:</label>
+            <textarea id="news-input-content" class="form-textarea" rows="4" placeholder="Nhập nội dung thông báo..." required></textarea>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Tải lên hình ảnh (Tùy chọn):</label>
+            <input type="file" id="news-input-img-file" class="form-input" accept="image/*">
+            <div style="font-size: 0.75rem; color: #94a3b8; margin-top: 4px;">Hoặc nhập URL hình ảnh:</div>
+            <input type="url" id="news-input-img-url" class="form-input" style="margin-top: 4px;" placeholder="https://...">
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Đính kèm tài liệu giải (PDF / Word / Excel):</label>
+            <input type="file" id="news-input-doc-file" class="form-input" accept=".pdf,.doc,.docx,.xls,.xlsx">
+          </div>
+
+          <button type="submit" class="btn btn-primary" style="width: 100%;">
+            Đăng Tin Ngay
+          </button>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- 6. MODAL ADMIN THÊM THÀNH VIÊN THỦ CÔNG -->
+  <div id="modal-admin-add-member" class="modal-backdrop">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3><i class="fa-solid fa-user-plus"></i> Thêm Thành Viên Thủ Công</h3>
+        <button class="modal-close-btn">&times;</button>
+      </div>
+      <div class="modal-body">
+        <form onsubmit="event.preventDefault(); adminManager.addNewMemberManual({
+          fullName: document.getElementById('adm-mem-name').value,
+          username: document.getElementById('adm-mem-uname').value,
+          password: document.getElementById('adm-mem-pass').value,
+          classGroup: document.getElementById('adm-mem-class').value,
+          gender: document.getElementById('adm-mem-gender').value,
+          role: document.getElementById('adm-mem-role').value
+        }).then(() => { app.closeModal('modal-admin-add-member'); adminManager.renderMembersSection(); }).catch(e => alert(e.message));">
+          <div class="form-group">
+            <label class="form-label">Họ và tên:</label>
+            <input type="text" id="adm-mem-name" class="form-input" required>
+          </div>
+          <div class="form-grid-2">
+            <div class="form-group">
+              <label class="form-label">Tên đăng nhập:</label>
+              <input type="text" id="adm-mem-uname" class="form-input" required>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Mật khẩu:</label>
+              <input type="password" id="adm-mem-pass" class="form-input" value="123456" required>
+            </div>
+          </div>
+          <div class="form-grid-2">
+            <div class="form-group">
+              <label class="form-label">Lớp:</label>
+              <input type="text" id="adm-mem-class" class="form-input" required>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Giới tính:</label>
+              <select id="adm-mem-gender" class="form-select">
+                <option value="nam">Nam</option>
+                <option value="nu">Nữ</option>
+              </select>
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Vai trò:</label>
+            <select id="adm-mem-role" class="form-select">
+              <option value="member">Học sinh / VĐV</option>
+              <option value="admin">Quản trị viên (Admin)</option>
+            </select>
+          </div>
+          <button type="submit" class="btn btn-primary" style="width: 100%;">
+            Thêm Thành Viên
+          </button>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- Scripts Loading -->
+  <script src="js/firebase-config.js"></script>
+  <script src="js/auth.js"></script>
+  <script src="js/ranking.js"></script>
+  <script src="js/doubles.js"></script>
+  <script src="js/friends_chat.js"></script>
+  <script src="js/matchmaking.js"></script>
+  <script src="js/news.js"></script>
+  <script src="js/admin.js"></script>
+  <script src="js/app.js"></script>
+
+  <!-- News Post Submission Script Handler -->
+  <script>
+    async function handleCreateNewsSubmit() {
+      try {
+        const title = document.getElementById('news-input-title').value;
+        const category = document.getElementById('news-input-cat').value;
+        const content = document.getElementById('news-input-content').value;
+        
+        let imageUrl = document.getElementById('news-input-img-url').value.trim();
+        const imgFile = document.getElementById('news-input-img-file').files[0];
+        if (imgFile) {
+          imageUrl = await fileToBase64(imgFile);
+        }
+
+        let documents = [];
+        const docFile = document.getElementById('news-input-doc-file').files[0];
+        if (docFile) {
+          const docBase64 = await fileToBase64(docFile);
+          const sizeKb = Math.round(docFile.size / 1024);
+          documents.push({
+            name: docFile.name,
+            url: docBase64,
+            size: sizeKb > 1024 ? `${(sizeKb/1024).toFixed(1)} MB` : `${sizeKb} KB`
+          });
+        }
+
+        await window.newsManager.createNewsPost({
+          title,
+          category,
+          content,
+          imageUrl,
+          documents
+        });
+
+        window.app.closeModal('modal-create-news');
+        window.app.showToast('Đã đăng bài viết và tài liệu thành công!', 'success');
+      } catch (err) {
+        alert(err.message);
+      }
+    }
+  </script>
 </body>
 </html>
