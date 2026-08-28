@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Đoàn Thượng Badminton</title>
+<style>
+:root{--navy:#071b35;--blue:#0b5ed7;--cyan:#12b5cb;--green:#18a957;--red:#e5484d;--bg:#f3f6fa;--card:#fff;--text:#172033;--muted:#718096;--line:#e7edf4}
+*{box-sizing:border-box} body{margin:0;font-family:Arial,Helvetica,sans-serif;background:var(--bg);color:var(--text)}
+button,input,select{font:inherit} button{cursor:pointer;border:0}
+.top{height:70px;background:linear-gradient(135deg,#06182e,#0b3c78);color:white;display:flex;align-items:center;padding:0 5%;justify-content:space-between;position:sticky;top:0;z-index:20;box-shadow:0 4px 18px #071b3526}
+.brand{display:flex;align-items:center;gap:12px;font-weight:800;letter-spacing:.5px}.logo{width:42px;height:42px;border:2px solid #fff;border-radius:50%;display:grid;place-items:center;font-size:20px}
+.nav{display:flex;gap:6px}.nav button{background:transparent;color:#dbeafe;padding:11px 15px;border-radius:8px}.nav button.active,.nav button:hover{background:#ffffff18;color:#fff}
+.hero{background:linear-gradient(135deg,#06182e 0%,#0a3970 60%,#0fa9ba 140%);color:#fff;padding:55px 5% 65px;position:relative;overflow:hidden}.hero:after{content:"";position:absolute;width:330px;height:330px;border:50px solid #ffffff10;border-radius:50%;right:-80px;top:-120px}
+.hero h1{font-size:44px;margin:0 0 10px}.hero p{color:#c9dbf2;font-size:17px;max-width:700px}.hero .badge{display:inline-block;background:#15b77a;color:white;padding:7px 12px;border-radius:99px;font-size:12px;font-weight:800;margin-bottom:15px}
+.wrap{max-width:1200px;margin:-28px auto 50px;padding:0 20px;position:relative;z-index:2}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:15px}.stat{background:white;border-radius:14px;padding:20px;box-shadow:0 8px 25px #183b5d12}.stat small{color:var(--muted)}.stat b{display:block;font-size:27px;margin-top:5px}
+.card{background:var(--card);border-radius:15px;box-shadow:0 8px 25px #183b5d12;margin-top:18px;overflow:hidden}.cardhead{padding:22px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--line)}.cardhead h2{margin:0}.tools{display:flex;gap:10px;flex-wrap:wrap}.search{padding:11px 14px;border:1px solid var(--line);border-radius:9px;min-width:220px;outline:none}.search:focus{border-color:var(--blue)}
+.tabs{display:flex;gap:7px;padding:15px 22px;border-bottom:1px solid var(--line);overflow:auto}.tab{background:#edf3fa;color:#4a5a70;padding:9px 14px;border-radius:8px;white-space:nowrap}.tab.active{background:var(--navy);color:white}
+table{width:100%;border-collapse:collapse}.tablewrap{overflow-x:auto}th{font-size:12px;text-transform:uppercase;color:#7b8799;text-align:left;background:#f8fafc;padding:13px 18px}td{padding:15px 18px;border-top:1px solid var(--line)}tr:hover td{background:#fafcff}
+.rank{font-size:20px;font-weight:900;width:70px}.player{display:flex;align-items:center;gap:12px}.avatar{width:40px;height:40px;border-radius:50%;display:grid;place-items:center;background:linear-gradient(135deg,#0b5ed7,#11b5c8);color:white;font-weight:800}.pname{font-weight:800}.sub{font-size:12px;color:var(--muted);margin-top:3px}.points{font-size:18px;font-weight:900}.up{color:var(--green);font-weight:800}.down{color:var(--red);font-weight:800}.medal{font-size:23px}
+.page{display:none}.page.active{display:block}
+.btn{padding:10px 14px;border-radius:9px;font-weight:700}.primary{background:var(--blue);color:white}.success{background:var(--green);color:white}.danger{background:var(--red);color:white}.ghost{background:#edf3fa;color:#18304d}.btn:hover{filter:brightness(.95)}
+.adminbar{display:flex;justify-content:space-between;align-items:center;background:#06182e;color:white;padding:16px 22px}.adminbar span{font-weight:800}.formgrid{display:grid;grid-template-columns:repeat(2,1fr);gap:13px;padding:20px}.field label{display:block;font-size:12px;color:var(--muted);margin-bottom:6px;font-weight:700}.field input,.field select{width:100%;padding:11px;border:1px solid var(--line);border-radius:8px;outline:none}.field input:focus,.field select:focus{border-color:var(--blue)}
+.login{max-width:430px;margin:70px auto;background:white;padding:32px;border-radius:16px;box-shadow:0 10px 35px #183b5d18}.login h2{text-align:center;margin-top:0}.login .field{margin:14px 0}.hint{font-size:12px;color:var(--muted);background:#f5f8fc;padding:10px;border-radius:8px}
+.profile{padding:25px;display:grid;grid-template-columns:120px 1fr;gap:25px}.bigavatar{width:110px;height:110px;border-radius:50%;display:grid;place-items:center;background:linear-gradient(135deg,#071b35,#10b8c8);color:white;font-size:38px;font-weight:900}.profile h2{margin:0 0 5px}.profile .score{font-size:38px;font-weight:900;color:var(--blue)}.history{padding:0 25px 25px}
+.toast{position:fixed;right:20px;bottom:20px;background:#06182e;color:white;padding:13px 18px;border-radius:10px;box-shadow:0 8px 30px #0003;display:none;z-index:50}
+footer{text-align:center;color:#7c8796;padding:35px 10px;font-size:13px}
+@media(max-width:800px){.stats{grid-template-columns:repeat(2,1fr)}.nav button{display:none}.hero h1{font-size:32px}.formgrid{grid-template-columns:1fr}.profile{grid-template-columns:1fr;text-align:center}.bigavatar{margin:auto}}
+</style>
+</head>
+<body>
+<header class="top">
+  <div class="brand"><div class="logo">🏸</div><span>ĐOÀN THƯỢNG BADMINTON</span></div>
+  <nav class="nav"><button class="active" onclick="showPage('home',this)">BXH</button><button onclick="showPage('players',this)">VĐV</button><button onclick="showPage('admin',this)">ADMIN</button></nav>
+</header>
+
+<section class="hero">
+  <span class="badge">CLB CẦU LÔNG ĐOÀN THƯỢNG</span>
+  <h1>Bảng xếp hạng CLB</h1>
+  <p>Hệ thống xếp hạng nội bộ dành cho các thành viên Đoàn Thượng Badminton. Điểm số được cập nhật bởi Ban quản trị CLB.</p>
+</section>
+
+<main class="wrap">
+<section id="home" class="page active">
+  <div class="stats">
+    <div class="stat"><small>Thành viên</small><b id="sPlayers">0</b></div>
+    <div class="stat"><small>Tổng điểm</small><b id="sPoints">0</b></div>
+    <div class="stat"><small>BXH cập nhật</small><b id="sDate">--/--/----</b></div>
+    <div class="stat"><small>Trạng thái</small><b style="color:#18a957">● Online</b></div>
+  </div>
+  <div class="card">
+    <div class="cardhead"><div><h2>Bảng xếp hạng</h2><div class="sub">Đơn nam • Đơn nữ • Đôi</div></div><input class="search" id="search" placeholder="🔎 Tìm tên thành viên..." oninput="render()"></div>
+    <div class="tabs">
+      <button class="tab active" onclick="setCategory('Đơn nam',this)">Đơn nam</button>
+      <button class="tab" onclick="setCategory('Đơn nữ',this)">Đơn nữ</button>
+      <button class="tab" onclick="setCategory('Đôi nam',this)">Đôi nam</button>
+      <button class="tab" onclick="setCategory('Đôi nữ',this)">Đôi nữ</button>
+      <button class="tab" onclick="setCategory('Đôi nam nữ',this)">Đôi nam nữ</button>
+    </div>
+    <div class="tablewrap"><table><thead><tr><th>Hạng</th><th>Vận động viên</th><th>Lớp</th><th>Điểm</th><th>Phong độ</th></tr></thead><tbody id="ranking"></tbody></table></div>
+  </div>
+</section>
+
+<section id="players" class="page">
+ <div class="card">
+  <div class="cardhead"><h2>Thành viên CLB</h2><input class="search" id="search2" placeholder="🔎 Tìm thành viên..." oninput="renderPlayers()"></div>
+  <div class="tablewrap"><table><thead><tr><th>Hạng</th><th>Thành viên</th><th>Giới tính</th><th>Loại</th><th>Điểm</th><th></th></tr></thead><tbody id="playersTable"></tbody></table></div>
+ </div>
+</section>
+
+<section id="admin" class="page">
+ <div id="loginBox" class="login">
+   <h2>🔐 Admin đăng nhập</h2>
+   <p class="sub" style="text-align:center">Quản trị BXH Đoàn Thượng Badminton</p>
+   <div class="field"><label>TÀI KHOẢN</label><input id="user" value="admin"></div>
+   <div class="field"><label>MẬT KHẨU</label><input id="pass" type="password" placeholder="Nhập mật khẩu"></div>
+   <button class="btn primary" style="width:100%" onclick="login()">Đăng nhập</button>
+   <p class="hint">Demo: tài khoản <b>admin</b> • mật khẩu <b>123456</b>. Khi đưa website lên mạng, hãy chuyển xác thực sang backend/database để bảo mật.</p>
+ </div>
+ <div id="dashboard" style="display:none">
+   <div class="card">
+    <div class="adminbar"><span>⚙️ ADMIN PANEL</span><button class="btn ghost" onclick="logout()">Đăng xuất</button></div>
+    <div class="cardhead"><h2>Thêm thành viên</h2></div>
+    <div class="formgrid">
+      <div class="field"><label>HỌ VÀ TÊN</label><input id="n" placeholder="Nguyễn Văn A"></div>
+      <div class="field"><label>LỚP</label><input id="cl" placeholder="10A1"></div>
+      <div class="field"><label>GIỚI TÍNH</label><select id="g"><option>Nam</option><option>Nữ</option></select></div>
+      <div class="field"><label>NỘI DUNG</label><select id="cat"><option>Đơn nam</option><option>Đơn nữ</option><option>Đôi nam</option><option>Đôi nữ</option><option>Đôi nam nữ</option></select></div>
+      <div class="field"><label>ĐIỂM BAN ĐẦU</label><input id="p" type="number" value="0"></div>
+      <div class="field" style="display:flex;align-items:end"><button class="btn success" style="width:100%" onclick="addPlayer()">＋ Thêm thành viên</button></div>
+    </div>
+   </div>
+   <div class="card">
+    <div class="cardhead"><h2>Quản lý điểm & thành viên</h2></div>
+    <div class="tablewrap"><table><thead><tr><th>VĐV</th><th>Nội dung</th><th>Điểm</th><th>Cộng / Trừ</th><th>Xóa</th></tr></thead><tbody id="adminTable"></tbody></table></div>
+   </div>
+ </div>
+</section>
+</main>
+<footer>© 2026 Đoàn Thượng Badminton • Hệ thống xếp hạng nội bộ CLB</footer>
+<div class="toast" id="toast"></div>
+
+<script>
+const KEY='dtb_players_v1';
+let players=JSON.parse(localStorage.getItem(KEY)||'null')||[
+ {id:1,n:'Nguyễn Đức Nhật Minh',cl:'10A1',g:'Nam',cat:'Đơn nam',p:1250,d:80},
+ {id:2,n:'Trần Minh Anh',cl:'10A2',g:'Nam',cat:'Đơn nam',p:1100,d:40},
+ {id:3,n:'Phạm Khánh Mai',cl:'10A1',g:'Nữ',cat:'Đơn nữ',p:980,d:55},
+ {id:4,n:'Nguyễn Văn Nam',cl:'10A3',g:'Nam',cat:'Đơn nam',p:900,d:-20},
+ {id:5,n:'Lê Hoàng Long',cl:'10A2',g:'Nam',cat:'Đôi nam',p:850,d:35},
+ {id:6,n:'Đỗ Ngọc Lan',cl:'10A4',g:'Nữ',cat:'Đơn nữ',p:820,d:15}
+];
+let category='Đơn nam';
+function save(){localStorage.setItem(KEY,JSON.stringify(players));}
+function fmt(x){return Number(x).toLocaleString('vi-VN')}
+function initials(n){return n.split(' ').slice(-2).map(x=>x[0]).join('').toUpperCase().slice(0,2)}
+function sorted(cat){return players.filter(x=>x.cat===cat).sort((a,b)=>b.p-a.p)}
+function render(){
+ let q=(document.getElementById('search')?.value||'').toLowerCase();
+ let a=sorted(category).filter(x=>x.n.toLowerCase().includes(q));
+ document.getElementById('ranking').innerHTML=a.length?a.map((x,i)=>`<tr><td class="rank">${i<3?['🥇','🥈','🥉'][i]:i+1}</td><td><div class="player"><div class="avatar">${initials(x.n)}</div><div><div class="pname">${x.n}</div><div class="sub">${x.g}</div></div></div></td><td>${x.cl}</td><td class="points">${fmt(x.p)}</td><td class="${x.d>=0?'up':'down'}">${x.d>=0?'▲ +':'▼ '}${fmt(Math.abs(x.d))}</td></tr>`).join(''):`<tr><td colspan="5" style="text-align:center;padding:35px">Chưa có thành viên ở nội dung này.</td></tr>`;
+ document.getElementById('sPlayers').textContent=players.length;
+ document.getElementById('sPoints').textContent=fmt(players.reduce((s,x)=>s+x.p,0));
+ document.getElementById('sDate').textContent=new Date().toLocaleDateString('vi-VN');
+}
+function renderPlayers(){
+ let q=(document.getElementById('search2')?.value||'').toLowerCase();
+ let a=players.filter(x=>x.n.toLowerCase().includes(q)).sort((a,b)=>b.p-a.p);
+ document.getElementById('playersTable').innerHTML=a.map((x,i)=>`<tr><td class="rank">${i+1}</td><td><div class="player"><div class="avatar">${initials(x.n)}</div><b>${x.n}</b></div></td><td>${x.g}</td><td>${x.cat}</td><td class="points">${fmt(x.p)}</td><td><button class="btn ghost" onclick="profile(${x.id})">Xem</button></td></tr>`).join('');
+}
+function renderAdmin(){
+ document.getElementById('adminTable').innerHTML=players.sort((a,b)=>b.p-a.p).map(x=>`<tr><td><b>${x.n}</b><div class="sub">${x.cl}</div></td><td>${x.cat}</td><td class="points">${fmt(x.p)}</td><td><button class="btn success" onclick="change(${x.id},1)">+ Điểm</button> <button class="btn danger" onclick="change(${x.id},-1)">− Điểm</button></td><td><button class="btn danger" onclick="del(${x.id})">Xóa</button></td></tr>`).join('');
+}
+function setCategory(c,b){category=c;document.querySelectorAll('.tab').forEach(x=>x.classList.remove('active'));b.classList.add('active');render()}
+function showPage(id,b){
+ document.querySelectorAll('.page').forEach(x=>x.classList.remove('active'));document.getElementById(id).classList.add('active');
+ document.querySelectorAll('.nav button').forEach(x=>x.classList.remove('active'));if(b)b.classList.add('active');
+ if(id==='players')renderPlayers();if(id==='admin')renderAdmin();
+}
+function login(){if(document.getElementById('user').value==='admin'&&document.getElementById('pass').value==='123456'){document.getElementById('loginBox').style.display='none';document.getElementById('dashboard').style.display='block';renderAdmin();toast('Đăng nhập thành công')}else alert('Sai tài khoản hoặc mật khẩu!')}
+function logout(){document.getElementById('dashboard').style.display='none';document.getElementById('loginBox').style.display='block'}
+function addPlayer(){
+ let n=document.getElementById('n').value.trim(),cl=document.getElementById('cl').value.trim(),g=document.getElementById('g').value,cat=document.getElementById('cat').value,p=Number(document.getElementById('p').value)||0;
+ if(!n||!cl)return alert('Vui lòng nhập họ tên và lớp.');
+ players.push({id:Date.now(),n,cl,g,cat,p,d:0});save();render();renderAdmin();['n','cl'].forEach(id=>document.getElementById(id).value='');document.getElementById('p').value=0;toast('Đã thêm thành viên');
+}
+function change(id,dir){
+ let x=players.find(x=>x.id===id);let v=prompt((dir>0?'Cộng':'Trừ')+' bao nhiêu điểm cho '+x.n+'?','50');if(v===null)return;v=Number(v);if(!Number.isFinite(v)||v<=0)return alert('Số điểm không hợp lệ.');
+ x.p=Math.max(0,x.p+dir*v);x.d=dir*v;save();render();renderAdmin();toast('Đã cập nhật điểm cho '+x.n);
+}
+function del(id){let x=players.find(x=>x.id===id);if(confirm('Xóa '+x.n+' khỏi danh sách?')){players=players.filter(x=>x.id!==id);save();render();renderAdmin();toast('Đã xóa thành viên')}}
+function profile(id){let x=players.find(x=>x.id===id);alert(`${x.n}\nLớp: ${x.cl}\nNội dung: ${x.cat}\nĐiểm: ${fmt(x.p)}`)}
+function toast(t){let e=document.getElementById('toast');e.textContent=t;e.style.display='block';setTimeout(()=>e.style.display='none',1800)}
+render();
+</script>
+</body>
+</html>
