@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Đoàn Thượng Badminton - Hệ Thống Xếp Hạng ĐTB & Kết Nối</title>
+  <title>Đoàn Thượng Badminton - Hệ Thống Xếp Hạng BWF & Kết Nối</title>
   
   <!-- Font & Icons -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -131,7 +131,7 @@ body {
 }
 
 .container {
-  max-width: 1280px;
+  max-width: 1320px;
   margin: 0 auto;
   padding: 0 16px;
 }
@@ -280,14 +280,39 @@ body {
   color: var(--bwf-navy-dark);
 }
 
+.btn-warning {
+  background: #f59e0b;
+  color: white;
+}
+.btn-warning:hover {
+  background: #d97706;
+}
+
 .btn-danger {
   background: #dc2626;
   color: white;
+}
+.btn-danger:hover {
+  background: #b91c1c;
+}
+
+.btn-purple {
+  background: #8b5cf6;
+  color: white;
+}
+.btn-purple:hover {
+  background: #7c3aed;
 }
 
 .btn-sm {
   padding: 5px 10px;
   font-size: 0.8rem;
+}
+
+.btn-xs {
+  padding: 3px 8px;
+  font-size: 0.72rem;
+  border-radius: 4px;
 }
 
 .btn-lg {
@@ -704,6 +729,18 @@ body {
   font-size: 0.75rem;
   font-weight: 700;
   border-radius: var(--radius-sm);
+}
+
+.tag-banned {
+  background: #fee2e2;
+  color: #b91c1c;
+  border: 1px solid #fca5a5;
+}
+
+.tag-admin {
+  background: #fef3c7;
+  color: #b45309;
+  border: 1px solid #fde68a;
 }
 
 /* Empty state */
@@ -1284,6 +1321,12 @@ body {
   gap: 16px;
 }
 
+.form-grid-3 {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 16px;
+}
+
 /* =========================================================
    MODAL & POPUPS
    ========================================================= */
@@ -1309,7 +1352,7 @@ body {
 .modal-content {
   background: white;
   border-radius: var(--radius-lg);
-  max-width: 550px;
+  max-width: 580px;
   width: 100%;
   max-height: 90vh;
   overflow-y: auto;
@@ -1371,6 +1414,7 @@ body {
 }
 .toast.success { border-left-color: var(--bwf-green); }
 .toast.error { border-left-color: var(--bwf-red); }
+.toast.warning { border-left-color: #f59e0b; }
 
 @keyframes slideInRight {
   from { transform: translateX(100%); opacity: 0; }
@@ -1437,7 +1481,7 @@ body {
     flex-direction: column;
     align-items: flex-start;
   }
-  .form-grid-2 {
+  .form-grid-2, .form-grid-3 {
     grid-template-columns: 1fr;
   }
   .bwf-table th:nth-child(4),
@@ -1800,7 +1844,7 @@ body {
           🛡️ Bảng Điều Khiển Ban Quản Trị (Admin Panel)
         </h2>
         <p style="color: var(--bwf-gray-text); font-size: 0.9rem;">
-          Dành riêng cho 2 Quản trị viên: <strong>Nguyễn Đức Nhật Minh</strong> & <strong>Nguyễn Đức Hiếu</strong>.
+          Toàn quyền quản trị hệ thống: cộng/trừ điểm BWF, cấm/mở khóa thành viên theo thời hạn, sửa số giải đấu, bổ nhiệm quản trị viên.
         </p>
       </div>
 
@@ -1811,7 +1855,7 @@ body {
             <i class="fa-solid fa-calculator"></i> Cộng / Trừ Điểm BWF
           </button>
           <button class="admin-menu-btn" data-section="members" onclick="adminManager.setSection('members')">
-            <i class="fa-solid fa-users-gear"></i> Quản Lý Thành Viên
+            <i class="fa-solid fa-users-gear"></i> Quản Lý Thành Viên & Phân Quyền
           </button>
           <button class="admin-menu-btn" data-section="pairs" onclick="adminManager.setSection('pairs')">
             <i class="fa-solid fa-people-arrows"></i> Quản Lý Cặp Đôi
@@ -1882,12 +1926,15 @@ body {
             </form>
           </div>
 
-          <!-- 2. Quản lý thành viên -->
+          <!-- 2. Quản lý thành viên & Phân quyền -->
           <div class="admin-sub-section" data-section="members" style="display: none;">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
-              <h3 style="font-size: 1.2rem; font-weight: 800; color: var(--bwf-navy-dark);">
-                👥 Danh Sách Học Sinh & Thành Viên
-              </h3>
+            <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; margin-bottom: 16px;">
+              <div>
+                <h3 style="font-size: 1.2rem; font-weight: 800; color: var(--bwf-navy-dark);">
+                  👥 Danh Sách Học Sinh & Thành Viên
+                </h3>
+                <p style="font-size: 0.8rem; color: #64748b;">Quản lý phân quyền Quản trị viên, cấm thành viên có thời hạn, chỉnh sửa số giải đấu và thông tin.</p>
+              </div>
               <button class="btn btn-primary btn-sm" onclick="app.openModal('modal-admin-add-member')">
                 <i class="fa-solid fa-user-plus"></i> Thêm Thành Viên Mới
               </button>
@@ -1899,10 +1946,11 @@ body {
                   <tr>
                     <th>Họ Tên / Username</th>
                     <th>Lớp</th>
-                    <th>Giới Tính</th>
                     <th>Vai Trò</th>
+                    <th style="text-align: center;">Số Giải Đã Đấu</th>
                     <th>Điểm Hiện Tại</th>
-                    <th>Thao Tác</th>
+                    <th>Trạng Thái</th>
+                    <th style="text-align: center;">Thao Tác Quản Trị</th>
                   </tr>
                 </thead>
                 <tbody id="admin-members-tbody">
@@ -1914,9 +1962,11 @@ body {
 
           <!-- 3. Quản lý cặp đôi -->
           <div class="admin-sub-section" data-section="pairs" style="display: none;">
-            <h3 style="font-size: 1.2rem; font-weight: 800; color: var(--bwf-navy-dark); margin-bottom: 16px;">
-              🏸 Danh Sách Cặp Đôi Đã Xác Nhận
-            </h3>
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+              <h3 style="font-size: 1.2rem; font-weight: 800; color: var(--bwf-navy-dark);">
+                🏸 Danh Sách Cặp Đôi Đã Xác Nhận
+              </h3>
+            </div>
             <div class="bwf-table-container">
               <table class="bwf-table">
                 <thead>
@@ -1924,6 +1974,7 @@ body {
                     <th>Nội Dung</th>
                     <th>Vận Động Viên 1</th>
                     <th>Vận Động Viên 2</th>
+                    <th style="text-align: center;">Số Giải</th>
                     <th>Trạng Thái</th>
                     <th>Điểm Cặp</th>
                     <th>Thao Tác</th>
@@ -2226,7 +2277,8 @@ body {
           password: document.getElementById('adm-mem-pass').value,
           classGroup: document.getElementById('adm-mem-class').value,
           gender: document.getElementById('adm-mem-gender').value,
-          role: document.getElementById('adm-mem-role').value
+          role: document.getElementById('adm-mem-role').value,
+          tournamentsCount: document.getElementById('adm-mem-tour-count').value
         }).then(() => { app.closeModal('modal-admin-add-member'); adminManager.renderMembersSection(); }).catch(e => alert(e.message));">
           <div class="form-group">
             <label class="form-label">Họ và tên:</label>
@@ -2242,7 +2294,7 @@ body {
               <input type="password" id="adm-mem-pass" class="form-input" value="123456" required>
             </div>
           </div>
-          <div class="form-grid-2">
+          <div class="form-grid-3">
             <div class="form-group">
               <label class="form-label">Lớp:</label>
               <input type="text" id="adm-mem-class" class="form-input" required>
@@ -2254,16 +2306,177 @@ body {
                 <option value="nu">Nữ</option>
               </select>
             </div>
+            <div class="form-group">
+              <label class="form-label">Số giải đã đấu:</label>
+              <input type="number" id="adm-mem-tour-count" class="form-input" value="1" min="0">
+            </div>
           </div>
           <div class="form-group">
             <label class="form-label">Vai trò:</label>
             <select id="adm-mem-role" class="form-select">
               <option value="member">Học sinh / VĐV</option>
-              <option value="admin">Quản trị viên (Admin)</option>
+              <option value="admin">Quản trị viên (Admin BQT)</option>
             </select>
           </div>
           <button type="submit" class="btn btn-primary" style="width: 100%;">
             Thêm Thành Viên
+          </button>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- 7. MODAL ADMIN CẤM THÀNH VIÊN (BAN USER) CÓ THỜI HẠN -->
+  <div id="modal-admin-ban-member" class="modal-backdrop">
+    <div class="modal-content">
+      <div class="modal-header" style="background: linear-gradient(135deg, #991b1b 0%, #b91c1c 100%);">
+        <h3><i class="fa-solid fa-ban"></i> Cấm / Khóa Tài Khoản Thành Viên</h3>
+        <button class="modal-close-btn">&times;</button>
+      </div>
+      <div class="modal-body">
+        <form onsubmit="event.preventDefault(); adminManager.submitBanMember();">
+          <input type="hidden" id="ban-target-username">
+          
+          <div class="form-group">
+            <label class="form-label">Thành viên bị cấm:</label>
+            <div id="ban-target-display" style="padding: 10px 14px; background: #fef2f2; border: 1px solid #fecaca; border-radius: var(--radius-md); font-weight: 700; color: #991b1b;">
+              Nguyễn Văn A (@username)
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Thời hạn cấm:</label>
+            <select id="ban-duration-select" class="form-select" onchange="adminManager.onBanDurationChange(this.value)">
+              <option value="1h">1 Giờ (Cảnh cáo nhanh)</option>
+              <option value="24h">24 Giờ (1 Ngày)</option>
+              <option value="3d">3 Ngày</option>
+              <option value="7d" selected>7 Ngày (1 Tuần)</option>
+              <option value="30d">30 Ngày (1 Tháng)</option>
+              <option value="permanent">⛔ Vĩnh Viễn (Khóa hẳn)</option>
+              <option value="custom">📅 Tùy chỉnh ngày & giờ kết thúc</option>
+            </select>
+          </div>
+
+          <div class="form-group" id="ban-custom-time-group" style="display: none;">
+            <label class="form-label">Chọn ngày & giờ mở khóa:</label>
+            <input type="datetime-local" id="ban-custom-datetime" class="form-input">
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Lý do cấm / khóa tài khoản:</label>
+            <textarea id="ban-reason-input" class="form-textarea" rows="3" placeholder="Nhập lý do (VD: Gian lận tỷ số, có lời lẽ xúc phạm thành viên khác, bỏ trận vô cớ...)" required></textarea>
+          </div>
+
+          <div style="display: flex; gap: 10px;">
+            <button type="button" class="btn btn-secondary" style="flex: 1;" onclick="app.closeModal('modal-admin-ban-member')">
+              Hủy
+            </button>
+            <button type="submit" class="btn btn-danger" style="flex: 2;">
+              <i class="fa-solid fa-gavel"></i> Xác Nhận Cấm Tài Khoản
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- 8. MODAL ADMIN CHỈNH SỬA THÔNG TIN & SỐ GIẢI ĐẤU (EDIT MEMBER) -->
+  <div id="modal-admin-edit-member" class="modal-backdrop">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3><i class="fa-solid fa-user-pen"></i> Chỉnh Sửa Thông Tin & Số Giải Đấu VĐV</h3>
+        <button class="modal-close-btn">&times;</button>
+      </div>
+      <div class="modal-body">
+        <form onsubmit="event.preventDefault(); adminManager.submitEditMember();">
+          <input type="hidden" id="edit-mem-username">
+
+          <div class="form-group">
+            <label class="form-label">Họ và tên:</label>
+            <input type="text" id="edit-mem-fullname" class="form-input" required>
+          </div>
+
+          <div class="form-grid-2">
+            <div class="form-group">
+              <label class="form-label">Lớp / Chi đoàn:</label>
+              <input type="text" id="edit-mem-class" class="form-input" required>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Giới tính:</label>
+              <select id="edit-mem-gender" class="form-select">
+                <option value="nam">Nam</option>
+                <option value="nu">Nữ</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="form-grid-2">
+            <div class="form-group">
+              <label class="form-label">🏆 Số lượng giải đấu đã tham gia:</label>
+              <input type="number" id="edit-mem-tour-count" class="form-input" min="0" required style="font-weight: 700; color: var(--bwf-navy-dark);">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Vai trò tài khoản:</label>
+              <select id="edit-mem-role" class="form-select">
+                <option value="member">Học sinh / VĐV</option>
+                <option value="admin">🛡️ Quản trị viên (Admin BQT)</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="form-grid-2">
+            <div class="form-group">
+              <label class="form-label">Điểm Đơn Nam / Đơn Nữ (PTS):</label>
+              <input type="number" id="edit-mem-single-points" class="form-input" min="0" required>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Tay thuận:</label>
+              <select id="edit-mem-hand" class="form-select">
+                <option value="Phải">Tay phải</option>
+                <option value="Trái">Tay trái</option>
+              </select>
+            </div>
+          </div>
+
+          <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 10px;">
+            <i class="fa-solid fa-floppy-disk"></i> Lưu Thay Đổi Thông Tin
+          </button>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- 9. MODAL SỬA SỐ GIẢI ĐẤU CHO CẶP ĐÔI -->
+  <div id="modal-admin-edit-pair" class="modal-backdrop">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3><i class="fa-solid fa-pen-to-square"></i> Chỉnh Sửa Cặp Đôi Thi Đấu</h3>
+        <button class="modal-close-btn">&times;</button>
+      </div>
+      <div class="modal-body">
+        <form onsubmit="event.preventDefault(); adminManager.submitEditPair();">
+          <input type="hidden" id="edit-pair-id">
+
+          <div class="form-group">
+            <label class="form-label">Cặp đôi:</label>
+            <div id="edit-pair-names-display" style="padding: 10px 14px; background: #f1f5f9; border-radius: var(--radius-md); font-weight: 700; color: var(--bwf-navy-dark);">
+              VĐV 1 & VĐV 2
+            </div>
+          </div>
+
+          <div class="form-grid-2">
+            <div class="form-group">
+              <label class="form-label">🏆 Số giải đấu đã tham gia:</label>
+              <input type="number" id="edit-pair-tour-count" class="form-input" min="0" required>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Tổng điểm BWF:</label>
+              <input type="number" id="edit-pair-points" class="form-input" min="0" required>
+            </div>
+          </div>
+
+          <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 10px;">
+            <i class="fa-solid fa-floppy-disk"></i> Lưu Thông Tin Cặp Đôi
           </button>
         </form>
       </div>
@@ -2356,6 +2569,10 @@ class RealtimeEngine {
             pointsMS: 12500,
             pointsMD: 11200,
             pointsXD: 9800,
+            tournamentsCount: 5,
+            isBanned: false,
+            bannedUntil: null,
+            banReason: "",
             avatar: "",
             createdAt: new Date().toISOString()
           },
@@ -2370,6 +2587,10 @@ class RealtimeEngine {
             pointsMS: 11800,
             pointsMD: 11200,
             pointsXD: 10400,
+            tournamentsCount: 5,
+            isBanned: false,
+            bannedUntil: null,
+            banReason: "",
             avatar: "",
             createdAt: new Date().toISOString()
           },
@@ -2384,6 +2605,10 @@ class RealtimeEngine {
             pointsMS: 9600,
             pointsMD: 8200,
             pointsXD: 7500,
+            tournamentsCount: 4,
+            isBanned: false,
+            bannedUntil: null,
+            banReason: "",
             avatar: "",
             createdAt: new Date().toISOString()
           },
@@ -2398,6 +2623,10 @@ class RealtimeEngine {
             pointsWS: 10500,
             pointsWD: 9200,
             pointsXD: 9800,
+            tournamentsCount: 4,
+            isBanned: false,
+            bannedUntil: null,
+            banReason: "",
             avatar: "",
             createdAt: new Date().toISOString()
           },
@@ -2412,6 +2641,10 @@ class RealtimeEngine {
             pointsWS: 9800,
             pointsWD: 9200,
             pointsXD: 8400,
+            tournamentsCount: 3,
+            isBanned: false,
+            bannedUntil: null,
+            banReason: "",
             avatar: "",
             createdAt: new Date().toISOString()
           },
@@ -2426,6 +2659,10 @@ class RealtimeEngine {
             pointsMS: 8900,
             pointsMD: 8200,
             pointsXD: 0,
+            tournamentsCount: 2,
+            isBanned: false,
+            bannedUntil: null,
+            banReason: "",
             avatar: "",
             createdAt: new Date().toISOString()
           }
@@ -2686,7 +2923,7 @@ window.realtimeDB = new RealtimeEngine();
 /* --- auth.js --- */
 /**
  * ĐOÀN THƯỢNG BADMINTON - AUTHENTICATION & USER MANAGEMENT
- * Xử lý Đăng nhập, Đăng ký, Đổi mật khẩu, Phân quyền Admin / Học sinh
+ * Xử lý Đăng nhập, Đăng ký, Đổi mật khẩu, Kiểm tra lệnh cấm (Ban system), Phân quyền Admin
  */
 
 class AuthManager {
@@ -2715,7 +2952,7 @@ class AuthManager {
         const u = this.users[uname];
         u.username = u.username || uname;
         
-        // Khôi phục tự động thông tin 2 Admin BQT
+        // Khôi phục tự động thông tin 2 Admin sáng lập BQT
         if (uname.toLowerCase() === 'nguyenducnhatminh') {
           u.role = 'admin';
           u.fullName = u.fullName || 'Nguyễn Đức Nhật Minh';
@@ -2733,15 +2970,55 @@ class AuthManager {
           u.role = u.role || 'member';
           u.classGroup = u.classGroup || 'Học sinh';
         }
+
+        // Kiểm tra hết hạn lệnh cấm tự động
+        if (u.bannedUntil && u.bannedUntil !== 'permanent') {
+          const expireTime = new Date(u.bannedUntil).getTime();
+          if (Date.now() > expireTime) {
+            u.isBanned = false;
+            u.bannedUntil = null;
+            u.banReason = "";
+            window.realtimeDB.update(`users/${uname}`, {
+              isBanned: false,
+              bannedUntil: null,
+              banReason: ""
+            });
+          }
+        }
       }
 
       if (this.currentUser && this.users[this.currentUser.username]) {
         this.currentUser = this.users[this.currentUser.username];
+        
+        // Nếu user đang đăng nhập bị Admin cấm -> tự động đăng xuất
+        if (this.checkIsBanned(this.currentUser)) {
+          this.logout();
+          alert(`⛔ Tài khoản của bạn đã bị Ban Quản Trị tạm khóa!\nThời hạn: ${this.getBanDurationText(this.currentUser)}\nLý do: ${this.currentUser.banReason || 'Vi phạm điều lệ'}`);
+          return;
+        }
+
         localStorage.setItem('DT_CURRENT_USER', JSON.stringify(this.currentUser));
       }
       
       this.updateAuthUI();
     });
+  }
+
+  checkIsBanned(user) {
+    if (!user) return false;
+    if (user.isBanned) {
+      if (!user.bannedUntil || user.bannedUntil === 'permanent') return true;
+      const expireTime = new Date(user.bannedUntil).getTime();
+      return Date.now() < expireTime;
+    }
+    return false;
+  }
+
+  getBanDurationText(user) {
+    if (!user || !user.isBanned) return 'Bình thường';
+    if (!user.bannedUntil || user.bannedUntil === 'permanent') return '⛔ Vĩnh viễn';
+    const dateObj = new Date(user.bannedUntil);
+    return `Đến ${dateObj.toLocaleDateString('vi-VN')} ${dateObj.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}`;
   }
 
   async login(username, password) {
@@ -2757,6 +3034,11 @@ class AuthManager {
       throw new Error("Tài khoản không tồn tại trên hệ thống!");
     }
 
+    // Kiểm tra lệnh cấm
+    if (this.checkIsBanned(user)) {
+      throw new Error(`⛔ Tài khoản này đang bị KHÓA bởi Ban Quản Trị!\nThời hạn: ${this.getBanDurationText(user)}\nLý do: ${user.banReason || 'Vi phạm quy định giải đấu'}`);
+    }
+
     // So sánh mật khẩu
     const userPass = (user.password || '').trim();
     if (userPass !== cleanPassword && user.password !== password) {
@@ -2765,14 +3047,8 @@ class AuthManager {
 
     // Đảm bảo thông tin tài khoản đầy đủ
     user.username = cleanUsername;
-    if (cleanUsername === 'nguyenducnhatminh') {
+    if (cleanUsername === 'nguyenducnhatminh' || cleanUsername === 'nguyenduchieu') {
       user.role = 'admin';
-      user.fullName = user.fullName || 'Nguyễn Đức Nhật Minh';
-      user.classGroup = user.classGroup || 'Ban Quản Trị';
-    } else if (cleanUsername === 'nguyenduchieu') {
-      user.role = 'admin';
-      user.fullName = user.fullName || 'Nguyễn Đức Hiếu';
-      user.classGroup = user.classGroup || 'Ban Quản Trị';
     }
 
     this.currentUser = user;
@@ -2824,11 +3100,15 @@ class AuthManager {
       gender: gender,
       dominantHand: dominantHand,
       role: 'member',
+      tournamentsCount: 0,
       pointsMS: gender === 'nam' ? 1000 : 0,
       pointsWS: gender === 'nu' ? 1000 : 0,
       pointsMD: 0,
       pointsWD: 0,
       pointsXD: 0,
+      isBanned: false,
+      bannedUntil: null,
+      banReason: "",
       avatar: "",
       createdAt: new Date().toISOString(),
       isOnline: true,
@@ -3006,9 +3286,10 @@ class RankingManager {
             gender: u.gender,
             dominantHand: u.dominantHand || 'Phải',
             points: points,
-            tournamentsCount: u.tournamentsCount || Math.max(1, Math.floor(points / 2500) + 1),
+            tournamentsCount: u.tournamentsCount !== undefined ? u.tournamentsCount : Math.max(1, Math.floor(points / 2500) + 1),
             avatar: u.avatar || '',
-            role: u.role
+            role: u.role,
+            isBanned: !!u.isBanned
           });
         }
       }
@@ -3028,7 +3309,7 @@ class RankingManager {
             player1Class: p.player1Class || 'CLB',
             player2Class: p.player2Class || 'CLB',
             points: p.points || 0,
-            tournamentsCount: p.tournamentsCount || 1,
+            tournamentsCount: p.tournamentsCount !== undefined ? p.tournamentsCount : 1,
             createdAt: p.createdAt
           });
         }
@@ -3127,6 +3408,7 @@ class RankingManager {
                   <div class="player-name">
                     ${item.fullName}
                     ${item.role === 'admin' ? '<span class="admin-badge-pill">BQT</span>' : ''}
+                    ${item.isBanned ? '<span class="tag-class tag-banned">Đang bị khóa</span>' : ''}
                   </div>
                   <div class="player-sub">
                     Tay thuận: ${item.dominantHand} • @${item.username}
@@ -3217,6 +3499,9 @@ class DoublesManager {
     window.realtimeDB.listen('pairs', (data) => {
       this.pairs = data || {};
       this.render();
+      if (window.adminManager && window.adminManager.currentSection === 'pairs') {
+        window.adminManager.renderPairsSection();
+      }
     });
 
     window.realtimeDB.listen('pairRequests', (data) => {
@@ -3437,7 +3722,7 @@ class DoublesManager {
                 <strong style="margin-left: 8px; font-size: 0.92rem; color: var(--bwf-navy-dark);">${p.player1Name} & ${p.player2Name}</strong>
                 <span class="tag-class" style="margin-left: 6px;">${partnerClass}</span>
                 <div style="font-size: 0.78rem; color: var(--bwf-gray-text); margin-top: 4px;">
-                  Điểm BWF: <strong style="color: var(--bwf-red);">${(p.points || 0).toLocaleString()} PTS</strong> • Đã lên Bảng xếp hạng ✅
+                  Điểm BWF: <strong style="color: var(--bwf-red);">${(p.points || 0).toLocaleString()} PTS</strong> • Số giải: <strong>${p.tournamentsCount || 0}</strong> • Đã lên Bảng xếp hạng ✅
                 </div>
               </div>
               <button class="btn btn-outline btn-sm" style="color: #dc2626; border-color: #fca5a5;" onclick="doublesManager.dissolvePair('${p.id}')">
@@ -4212,10 +4497,12 @@ window.newsManager = new NewsManager();
 /* --- admin.js --- */
 /**
  * ĐOÀN THƯỢNG BADMINTON - ADMIN PANEL CONTROLLER
- * Quyền hạn của 2 Admin (Nguyễn Đức Nhật Minh & Nguyễn Đức Hiếu):
- * - Cộng/trừ điểm xếp hạng BWF (Đơn & Đôi)
- * - Quản lý thành viên (Thêm, Xóa, Đổi mật khẩu học sinh, Khóa tài khoản)
- * - Quản lý cặp đôi & Cấu hình Realtime Database
+ * Quyền hạn của Ban Quản Trị (Admin):
+ * 1. Cộng / trừ điểm xếp hạng BWF (Đơn & Đôi)
+ * 2. Cấm / Khóa tài khoản thành viên với THỜI HẠN TÙY CHỌN (1h, 24h, 3d, 7d, 30d, Vĩnh viễn, Tự chọn ngày giờ) kèm lý do
+ * 3. Chỉnh sửa số lượng giải đấu vận động viên / cặp đôi đã tham gia
+ * 4. Bổ nhiệm account khác lên làm Quản trị viên (Admin) hoặc hạ cấp về Học sinh
+ * 5. Quản lý thành viên, đổi mật khẩu, xóa tài khoản, cấu hình Realtime Sync
  */
 
 class AdminManager {
@@ -4298,7 +4585,7 @@ class AdminManager {
 
       await window.realtimeDB.update(`users/${targetId}`, {
         [field]: newPts,
-        tournamentsCount: (u.tournamentsCount || 1) + (action === 'add' ? 1 : 0)
+        tournamentsCount: (u.tournamentsCount !== undefined ? u.tournamentsCount : 1) + (action === 'add' ? 1 : 0)
       });
     } else {
       const p = window.doublesManager.pairs[targetId];
@@ -4309,13 +4596,16 @@ class AdminManager {
 
       await window.realtimeDB.update(`pairs/${targetId}`, {
         points: newPts,
-        tournamentsCount: (p.tournamentsCount || 1) + (action === 'add' ? 1 : 0)
+        tournamentsCount: (p.tournamentsCount !== undefined ? p.tournamentsCount : 1) + (action === 'add' ? 1 : 0)
       });
     }
 
     window.app.showToast(`Đã ${action === 'add' ? 'cộng' : 'trừ'} ${amount.toLocaleString()} điểm thành công!`, "success");
   }
 
+  /* --------------------------------------------------------------------------
+     QUẢN LÝ THÀNH VIÊN, PHÂN QUYỀN VÀ KHÓA / CẤM TÀI KHOẢN
+     -------------------------------------------------------------------------- */
   renderMembersSection() {
     const tbody = document.getElementById('admin-members-tbody');
     if (!tbody) return;
@@ -4326,9 +4616,20 @@ class AdminManager {
     for (let uname in users) {
       const u = users[uname];
       if (!u) continue;
-      const isAdmin = u.role === 'admin' || uname === 'nguyenducnhatminh' || uname === 'nguyenduchieu';
+      const isRootAdmin = (uname === 'nguyenducnhatminh' || uname === 'nguyenduchieu');
+      const isAdmin = u.role === 'admin' || isRootAdmin;
+      const isBanned = window.authManager.checkIsBanned(u);
       const fname = u.fullName || u.username || uname;
       const initial = (fname.charAt(0) || 'U').toUpperCase();
+      const tourCount = u.tournamentsCount !== undefined ? u.tournamentsCount : 0;
+      const singlePts = u.gender === 'nam' ? (u.pointsMS || 0) : (u.pointsWS || 0);
+
+      // Trạng thái cấm
+      let statusBadgeHtml = '<span class="tag-class" style="background: #dcfce7; color: #15803d;"><i class="fa-solid fa-check"></i> Hoạt động</span>';
+      if (isBanned) {
+        const banText = window.authManager.getBanDurationText(u);
+        statusBadgeHtml = `<span class="tag-class tag-banned" title="${u.banReason || 'Vi phạm'}"><i class="fa-solid fa-ban"></i> Bị khóa: ${banText}</span>`;
+      }
 
       html += `
         <tr>
@@ -4345,23 +4646,52 @@ class AdminManager {
             <span class="tag-class">${u.classGroup || 'N/A'}</span>
           </td>
           <td>
-            ${u.gender === 'nam' ? 'Nam (MS)' : 'Nữ (WS)'}
-          </td>
-          <td>
-            <span class="tag-class" style="background: ${isAdmin ? '#fee2e2; color: #b91c1c;' : '#f1f5f9; color: #475569;'}">
-              ${isAdmin ? '🛡️ Admin' : 'Học sinh'}
+            <span class="tag-class ${isAdmin ? 'tag-admin' : ''}">
+              ${isAdmin ? '🛡️ Admin BQT' : '🏸 Học sinh'}
             </span>
           </td>
+          <td style="text-align: center;">
+            <span style="font-weight: 800; color: var(--bwf-navy-dark);">${tourCount}</span> giải
+          </td>
           <td style="font-weight: 700; color: var(--bwf-navy-dark);">
-            ${u.gender === 'nam' ? (u.pointsMS || 0).toLocaleString() : (u.pointsWS || 0).toLocaleString()} PTS
+            ${singlePts.toLocaleString()} PTS
           </td>
           <td>
-            <div style="display: flex; gap: 6px;">
-              <button class="btn btn-secondary btn-sm" onclick="adminManager.promptChangePassword('${uname}')" title="Đổi mật khẩu">
+            ${statusBadgeHtml}
+          </td>
+          <td>
+            <div style="display: flex; gap: 4px; justify-content: center; flex-wrap: wrap;">
+              <!-- Nút Sửa thông tin & số giải -->
+              <button class="btn btn-secondary btn-xs" onclick="adminManager.openEditMemberModal('${uname}')" title="Sửa thông tin & số giải đấu">
+                <i class="fa-solid fa-user-pen"></i> Sửa
+              </button>
+
+              <!-- Nút Bổ nhiệm / Hạ cấp Admin -->
+              ${!isRootAdmin ? `
+                <button class="btn ${isAdmin ? 'btn-warning' : 'btn-purple'} btn-xs" onclick="adminManager.toggleAdminRole('${uname}')" title="${isAdmin ? 'Hạ cấp về Học sinh' : 'Bổ nhiệm lên Quản trị viên'}">
+                  <i class="fa-solid ${isAdmin ? 'fa-user-minus' : 'fa-shield-halved'}"></i> ${isAdmin ? 'Hạ QTV' : 'Thành QTV'}
+                </button>
+              ` : '<span style="font-size: 0.7rem; color: #94a3b8; padding: 2px 4px;">Sáng lập</span>'}
+
+              <!-- Nút Cấm / Mở khóa -->
+              ${!isRootAdmin ? (isBanned ? `
+                <button class="btn btn-success btn-xs" onclick="adminManager.unbanMember('${uname}')" title="Gỡ cấm / Mở khóa tài khoản">
+                  <i class="fa-solid fa-lock-open"></i> Gỡ Cấm
+                </button>
+              ` : `
+                <button class="btn btn-danger btn-xs" onclick="adminManager.openBanModal('${uname}')" title="Cấm / Khóa tài khoản có thời hạn">
+                  <i class="fa-solid fa-ban"></i> Cấm
+                </button>
+              `) : ''}
+
+              <!-- Nút Đổi mật khẩu nhanh -->
+              <button class="btn btn-secondary btn-xs" onclick="adminManager.promptChangePassword('${uname}')" title="Đổi mật khẩu">
                 <i class="fa-solid fa-key"></i>
               </button>
-              ${!isAdmin ? `
-                <button class="btn btn-outline btn-sm" style="color: #dc2626; border-color: #fca5a5;" onclick="adminManager.deleteMember('${uname}')" title="Xóa thành viên">
+
+              <!-- Nút Xóa thành viên -->
+              ${!isRootAdmin ? `
+                <button class="btn btn-outline btn-xs" style="color: #dc2626; border-color: #fca5a5;" onclick="adminManager.deleteMember('${uname}')" title="Xóa tài khoản">
                   <i class="fa-solid fa-trash"></i>
                 </button>
               ` : ''}
@@ -4374,62 +4704,184 @@ class AdminManager {
     tbody.innerHTML = html;
   }
 
-  async promptChangePassword(username) {
-    const newPass = prompt(`Nhập mật khẩu mới cho tài khoản @${username}:`);
-    if (!newPass) return;
-    if (newPass.length < 4) {
-      alert("Mật khẩu phải có ít nhất 4 ký tự!");
+  /* 1. BỔ NHIỆM / THU HỒI QUYỀN ADMIN */
+  async toggleAdminRole(username) {
+    const u = window.authManager.users[username];
+    if (!u) return;
+
+    if (username === 'nguyenducnhatminh' || username === 'nguyenduchieu') {
+      alert("Không thể thay đổi quyền hạn của Admin sáng lập hệ thống!");
       return;
     }
 
-    await window.realtimeDB.update(`users/${username}`, { password: newPass });
-    window.app.showToast(`Đã đổi mật khẩu cho @${username} thành công!`, "success");
-  }
+    const currentRole = u.role || 'member';
+    const newRole = currentRole === 'admin' ? 'member' : 'admin';
+    const actionText = newRole === 'admin' ? 'BỔ NHIỆM làm Quản trị viên (Admin)' : 'HẠ CẤP về Học sinh / Vận động viên';
 
-  async deleteMember(username) {
-    if (!confirm(`Bạn có chắc chắn muốn xóa thành viên @${username} khỏi hệ thống không?`)) return;
-    await window.realtimeDB.remove(`users/${username}`);
-    window.app.showToast(`Đã xóa thành viên @${username}`, "info");
+    if (!confirm(`Bạn có chắc chắn muốn ${actionText} cho tài khoản @${username} (${u.fullName}) không?`)) {
+      return;
+    }
+
+    await window.realtimeDB.update(`users/${username}`, {
+      role: newRole
+    });
+
+    window.app.showToast(`Đã ${newRole === 'admin' ? 'bổ nhiệm' : 'hạ cấp'} @${username} thành công!`, "success");
     this.renderMembersSection();
   }
 
-  async addNewMemberManual(formData) {
-    const username = (formData.username || '').trim().toLowerCase();
-    const password = (formData.password || '').trim();
-    const fullName = (formData.fullName || '').trim();
-    const classGroup = (formData.classGroup || '').trim();
-    const gender = formData.gender || 'nam';
-    const role = formData.role || 'member';
+  /* 2. CẤM THÀNH VIÊN VỚI THỜI HẠN TÙY CHỌN */
+  openBanModal(username) {
+    const u = window.authManager.users[username];
+    if (!u) return;
 
-    if (!username || !password || !fullName || !classGroup) {
-      throw new Error("Vui lòng điền đủ thông tin!");
+    if (username === 'nguyenducnhatminh' || username === 'nguyenduchieu') {
+      alert("Không thể cấm Admin sáng lập hệ thống!");
+      return;
     }
 
-    if (window.authManager.users[username]) {
-      throw new Error("Tên đăng nhập này đã tồn tại!");
-    }
+    document.getElementById('ban-target-username').value = username;
+    document.getElementById('ban-target-display').textContent = `${u.fullName || username} (@${username} - Lớp ${u.classGroup || 'CLB'})`;
+    document.getElementById('ban-duration-select').value = '7d';
+    document.getElementById('ban-custom-time-group').style.display = 'none';
+    document.getElementById('ban-reason-input').value = '';
 
-    const newUser = {
-      username: username,
-      password: password,
-      fullName: fullName,
-      classGroup: classGroup,
-      gender: gender,
-      dominantHand: 'Phải',
-      role: role,
-      pointsMS: gender === 'nam' ? 1000 : 0,
-      pointsWS: gender === 'nu' ? 1000 : 0,
-      pointsMD: 0,
-      pointsWD: 0,
-      pointsXD: 0,
-      avatar: "",
-      createdAt: new Date().toISOString()
-    };
-
-    await window.realtimeDB.set(`users/${username}`, newUser);
-    window.app.showToast(`Đã thêm thành viên ${fullName} thành công!`, "success");
+    window.app.openModal('modal-admin-ban-member');
   }
 
+  onBanDurationChange(val) {
+    const customGroup = document.getElementById('ban-custom-time-group');
+    if (customGroup) {
+      customGroup.style.display = val === 'custom' ? 'block' : 'none';
+      if (val === 'custom') {
+        const tomorrow = new Date(Date.now() + 24 * 60 * 60 * 1000);
+        document.getElementById('ban-custom-datetime').value = tomorrow.toISOString().slice(0, 16);
+      }
+    }
+  }
+
+  async submitBanMember() {
+    const username = document.getElementById('ban-target-username').value;
+    const durationType = document.getElementById('ban-duration-select').value;
+    const reason = (document.getElementById('ban-reason-input').value || '').trim();
+
+    if (!username) return;
+    if (!reason) {
+      alert("Vui lòng nhập lý do cấm tài khoản!");
+      return;
+    }
+
+    let bannedUntil = null;
+    const now = Date.now();
+
+    if (durationType === '1h') {
+      bannedUntil = new Date(now + 1 * 60 * 60 * 1000).toISOString();
+    } else if (durationType === '24h') {
+      bannedUntil = new Date(now + 24 * 60 * 60 * 1000).toISOString();
+    } else if (durationType === '3d') {
+      bannedUntil = new Date(now + 3 * 24 * 60 * 60 * 1000).toISOString();
+    } else if (durationType === '7d') {
+      bannedUntil = new Date(now + 7 * 24 * 60 * 60 * 1000).toISOString();
+    } else if (durationType === '30d') {
+      bannedUntil = new Date(now + 30 * 24 * 60 * 60 * 1000).toISOString();
+    } else if (durationType === 'permanent') {
+      bannedUntil = 'permanent';
+    } else if (durationType === 'custom') {
+      const customVal = document.getElementById('ban-custom-datetime').value;
+      if (!customVal) {
+        alert("Vui lòng chọn ngày giờ kết thúc lệnh cấm!");
+        return;
+      }
+      bannedUntil = new Date(customVal).toISOString();
+    }
+
+    await window.realtimeDB.update(`users/${username}`, {
+      isBanned: true,
+      bannedUntil: bannedUntil,
+      banReason: reason
+    });
+
+    window.app.closeModal('modal-admin-ban-member');
+    window.app.showToast(`Đã cấm tài khoản @${username} thành công!`, "warning");
+    this.renderMembersSection();
+  }
+
+  async unbanMember(username) {
+    if (!confirm(`Bạn có chắc chắn muốn MỞ KHÓA / GỠ CẤM cho tài khoản @${username} không?`)) {
+      return;
+    }
+
+    await window.realtimeDB.update(`users/${username}`, {
+      isBanned: false,
+      bannedUntil: null,
+      banReason: ""
+    });
+
+    window.app.showToast(`Đã mở khóa cho tài khoản @${username}!`, "success");
+    this.renderMembersSection();
+  }
+
+  /* 3. CHỈNH SỬA THÔNG TIN & SỐ GIẢI ĐẤU CỦA VĐV */
+  openEditMemberModal(username) {
+    const u = window.authManager.users[username];
+    if (!u) return;
+
+    document.getElementById('edit-mem-username').value = username;
+    document.getElementById('edit-mem-fullname').value = u.fullName || username;
+    document.getElementById('edit-mem-class').value = u.classGroup || '';
+    document.getElementById('edit-mem-gender').value = u.gender || 'nam';
+    document.getElementById('edit-mem-tour-count').value = u.tournamentsCount !== undefined ? u.tournamentsCount : 1;
+    document.getElementById('edit-mem-role').value = u.role || 'member';
+    document.getElementById('edit-mem-hand').value = u.dominantHand || 'Phải';
+    
+    const singlePts = u.gender === 'nam' ? (u.pointsMS || 0) : (u.pointsWS || 0);
+    document.getElementById('edit-mem-single-points').value = singlePts;
+
+    window.app.openModal('modal-admin-edit-member');
+  }
+
+  async submitEditMember() {
+    const username = document.getElementById('edit-mem-username').value;
+    const fullName = (document.getElementById('edit-mem-fullname').value || '').trim();
+    const classGroup = (document.getElementById('edit-mem-class').value || '').trim();
+    const gender = document.getElementById('edit-mem-gender').value;
+    const tourCount = parseInt(document.getElementById('edit-mem-tour-count').value) || 0;
+    const role = document.getElementById('edit-mem-role').value;
+    const dominantHand = document.getElementById('edit-mem-hand').value;
+    const singlePts = parseInt(document.getElementById('edit-mem-single-points').value) || 0;
+
+    if (!username || !fullName || !classGroup) {
+      alert("Vui lòng điền đủ họ tên và lớp!");
+      return;
+    }
+
+    const updates = {
+      fullName,
+      classGroup,
+      gender,
+      tournamentsCount: tourCount,
+      role,
+      dominantHand
+    };
+
+    if (gender === 'nam') {
+      updates.pointsMS = singlePts;
+    } else {
+      updates.pointsWS = singlePts;
+    }
+
+    // Bảo vệ admin gốc
+    if (username === 'nguyenducnhatminh' || username === 'nguyenduchieu') {
+      updates.role = 'admin';
+    }
+
+    await window.realtimeDB.update(`users/${username}`, updates);
+    window.app.closeModal('modal-admin-edit-member');
+    window.app.showToast("Cập nhật thông tin VĐV thành công!", "success");
+    this.renderMembersSection();
+  }
+
+  /* 4. CHỈNH SỬA CẶP ĐÔI */
   renderPairsSection() {
     const tbody = document.getElementById('admin-pairs-tbody');
     if (!tbody) return;
@@ -4453,6 +4905,9 @@ class AdminManager {
           <td>
             <strong>${p.player2Name}</strong> (@${p.player2} - Lớp ${p.player2Class})
           </td>
+          <td style="text-align: center; font-weight: 800; color: var(--bwf-navy-dark);">
+            ${p.tournamentsCount !== undefined ? p.tournamentsCount : 1} giải
+          </td>
           <td>
             <span class="tag-class" style="background: #dcfce7; color: #15803d;">Đã duyệt</span>
           </td>
@@ -4460,19 +4915,53 @@ class AdminManager {
             ${(p.points || 0).toLocaleString()} PTS
           </td>
           <td>
-            <button class="btn btn-outline btn-sm" style="color: #dc2626; border-color: #fca5a5;" onclick="adminManager.deletePair('${p.id || pid}')">
-              <i class="fa-solid fa-trash"></i> Hủy
-            </button>
+            <div style="display: flex; gap: 4px;">
+              <button class="btn btn-secondary btn-xs" onclick="adminManager.openEditPairModal('${p.id || pid}')" title="Sửa số giải & điểm">
+                <i class="fa-solid fa-pen-to-square"></i> Sửa
+              </button>
+              <button class="btn btn-outline btn-xs" style="color: #dc2626; border-color: #fca5a5;" onclick="adminManager.deletePair('${p.id || pid}')" title="Hủy cặp đôi">
+                <i class="fa-solid fa-trash"></i> Hủy
+              </button>
+            </div>
           </td>
         </tr>
       `;
     }
 
     if (!html) {
-      html = '<tr><td colspan="6" style="text-align: center; color: #94a3b8; padding: 20px;">Chưa có cặp đôi nào được xác nhận.</td></tr>';
+      html = '<tr><td colspan="7" style="text-align: center; color: #94a3b8; padding: 20px;">Chưa có cặp đôi nào được xác nhận.</td></tr>';
     }
 
     tbody.innerHTML = html;
+  }
+
+  openEditPairModal(pairId) {
+    const p = window.doublesManager.pairs[pairId];
+    if (!p) return;
+
+    document.getElementById('edit-pair-id').value = pairId;
+    document.getElementById('edit-pair-names-display').textContent = `${p.player1Name} & ${p.player2Name} (${p.category})`;
+    document.getElementById('edit-pair-tour-count').value = p.tournamentsCount !== undefined ? p.tournamentsCount : 1;
+    document.getElementById('edit-pair-points').value = p.points || 0;
+
+    window.app.openModal('modal-admin-edit-pair');
+  }
+
+  async submitEditPair() {
+    const pairId = document.getElementById('edit-pair-id').value;
+    const tourCount = parseInt(document.getElementById('edit-pair-tour-count').value) || 0;
+    const points = parseInt(document.getElementById('edit-pair-points').value) || 0;
+
+    if (!pairId) return;
+
+    await window.realtimeDB.update(`pairs/${pairId}`, {
+      tournamentsCount: tourCount,
+      points: points
+    });
+
+    window.app.closeModal('modal-admin-edit-pair');
+    window.app.showToast("Đã cập nhật thông tin cặp đôi!", "success");
+    this.renderPairsSection();
   }
 
   async deletePair(pairId) {
@@ -4480,6 +4969,71 @@ class AdminManager {
     await window.realtimeDB.remove(`pairs/${pairId}`);
     window.app.showToast("Đã xóa cặp đôi", "info");
     this.renderPairsSection();
+  }
+
+  async promptChangePassword(username) {
+    const newPass = prompt(`Nhập mật khẩu mới cho tài khoản @${username}:`);
+    if (!newPass) return;
+    if (newPass.length < 4) {
+      alert("Mật khẩu phải có ít nhất 4 ký tự!");
+      return;
+    }
+
+    await window.realtimeDB.update(`users/${username}`, { password: newPass });
+    window.app.showToast(`Đã đổi mật khẩu cho @${username} thành công!`, "success");
+  }
+
+  async deleteMember(username) {
+    if (username === 'nguyenducnhatminh' || username === 'nguyenduchieu') {
+      alert("Không thể xóa Admin sáng lập!");
+      return;
+    }
+    if (!confirm(`Bạn có chắc chắn muốn xóa thành viên @${username} khỏi hệ thống không?`)) return;
+    await window.realtimeDB.remove(`users/${username}`);
+    window.app.showToast(`Đã xóa thành viên @${username}`, "info");
+    this.renderMembersSection();
+  }
+
+  async addNewMemberManual(formData) {
+    const username = (formData.username || '').trim().toLowerCase();
+    const password = (formData.password || '').trim();
+    const fullName = (formData.fullName || '').trim();
+    const classGroup = (formData.classGroup || '').trim();
+    const gender = formData.gender || 'nam';
+    const role = formData.role || 'member';
+    const tourCount = parseInt(formData.tournamentsCount) || 1;
+
+    if (!username || !password || !fullName || !classGroup) {
+      throw new Error("Vui lòng điền đủ thông tin!");
+    }
+
+    if (window.authManager.users[username]) {
+      throw new Error("Tên đăng nhập này đã tồn tại!");
+    }
+
+    const newUser = {
+      username: username,
+      password: password,
+      fullName: fullName,
+      classGroup: classGroup,
+      gender: gender,
+      dominantHand: 'Phải',
+      role: role,
+      tournamentsCount: tourCount,
+      pointsMS: gender === 'nam' ? 1000 : 0,
+      pointsWS: gender === 'nu' ? 1000 : 0,
+      pointsMD: 0,
+      pointsWD: 0,
+      pointsXD: 0,
+      isBanned: false,
+      bannedUntil: null,
+      banReason: "",
+      avatar: "",
+      createdAt: new Date().toISOString()
+    };
+
+    await window.realtimeDB.set(`users/${username}`, newUser);
+    window.app.showToast(`Đã thêm thành viên ${fullName} thành công!`, "success");
   }
 
   renderSyncSection() {
@@ -4563,7 +5117,7 @@ class App {
 
   navigate(viewName) {
     if (viewName === 'admin' && !window.authManager.isAdmin()) {
-      this.showToast("Chỉ Admin Nguyễn Đức Nhật Minh và Nguyễn Đức Hiếu mới có quyền truy cập!", "error");
+      this.showToast("Chỉ Ban Quản Trị mới có quyền truy cập!", "error");
       this.openModal('modal-login');
       return;
     }
@@ -4661,6 +5215,7 @@ class App {
     let icon = 'fa-solid fa-circle-info';
     if (type === 'success') icon = 'fa-solid fa-circle-check';
     if (type === 'error') icon = 'fa-solid fa-triangle-exclamation';
+    if (type === 'warning') icon = 'fa-solid fa-triangle-exclamation';
 
     toast.innerHTML = `<i class="${icon}"></i><span>${message}</span>`;
     container.appendChild(toast);
