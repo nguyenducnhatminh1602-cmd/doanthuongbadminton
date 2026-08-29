@@ -131,6 +131,7 @@ class FriendsChatManager {
       id: msgId,
       sender: me,
       text: cleanText,
+      type: 'text',
       timestamp: new Date().toISOString()
     };
 
@@ -140,6 +141,71 @@ class FriendsChatManager {
     if (msgArea) {
       setTimeout(() => { msgArea.scrollTop = msgArea.scrollHeight; }, 100);
     }
+  }
+
+  async sendImageMessage(file) {
+    if (!window.authManager.isLoggedIn() || !this.activeChatPartner) return;
+    if (!file) return;
+
+    // Giới hạn 2MB
+    if (file.size > 2 * 1024 * 1024) {
+      window.app.showToast('Ảnh quá lớn! Vui lòng chọn ảnh nhỏ hơn 2MB.', 'error');
+      return;
+    }
+
+    const me = window.authManager.currentUser.username;
+    const partner = this.activeChatPartner;
+    const roomKey = this.getChatRoomKey(me, partner);
+
+    // Đọc ảnh và nén nếu cần
+    window.app.showToast('Đang gửi ảnh...', 'info');
+
+    try {
+      const imageData = await this._compressImage(file, 800, 0.75);
+      const msgId = `msg_${Date.now()}`;
+      const newMsg = {
+        id: msgId,
+        sender: me,
+        type: 'image',
+        imageData: imageData,
+        timestamp: new Date().toISOString()
+      };
+
+      await window.realtimeDB.set(`chat/${roomKey}/${msgId}`, newMsg);
+      window.app.showToast('Đã gửi ảnh!', 'success');
+
+      const msgArea = document.getElementById('chat-messages-area');
+      if (msgArea) {
+        setTimeout(() => { msgArea.scrollTop = msgArea.scrollHeight; }, 100);
+      }
+    } catch (e) {
+      window.app.showToast('Lỗi khi gửi ảnh: ' + e.message, 'error');
+    }
+  }
+
+  _compressImage(file, maxDim, quality) {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const img = new Image();
+        img.onload = () => {
+          const canvas = document.createElement('canvas');
+          let w = img.width, h = img.height;
+          if (w > maxDim || h > maxDim) {
+            if (w > h) { h = Math.round(h * maxDim / w); w = maxDim; }
+            else       { w = Math.round(w * maxDim / h); h = maxDim; }
+          }
+          canvas.width = w; canvas.height = h;
+          const ctx = canvas.getContext('2d');
+          ctx.drawImage(img, 0, 0, w, h);
+          resolve(canvas.toDataURL('image/jpeg', quality));
+        };
+        img.onerror = reject;
+        img.src = e.target.result;
+      };
+      reader.onerror = reject;
+      reader.readAsDataURL(file);
+    });
   }
 
   renderChatMessages() {
@@ -167,12 +233,22 @@ class FriendsChatManager {
     msgList.forEach(m => {
       const isMe = m.sender === me;
       const timeStr = new Date(m.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-      html += `
-        <div class="message-bubble ${isMe ? 'outgoing' : 'incoming'}">
-          <div>${this.escapeHtml(m.text)}</div>
-          <div class="message-time">${timeStr}</div>
-        </div>
-      `;
+
+      if (m.type === 'image' && m.imageData) {
+        html += `
+          <div class="message-bubble ${isMe ? 'outgoing' : 'incoming'}">
+            <img class="message-img" src="${m.imageData}" alt="Ảnh" onclick="document.getElementById('chat-lightbox-img').src=this.src; document.getElementById('chat-lightbox').classList.add('open');">
+            <div class="message-time">${timeStr}</div>
+          </div>
+        `;
+      } else {
+        html += `
+          <div class="message-bubble ${isMe ? 'outgoing' : 'incoming'}">
+            <div>${this.escapeHtml(m.text || '')}</div>
+            <div class="message-time">${timeStr}</div>
+          </div>
+        `;
+      }
     });
 
     msgArea.innerHTML = html;
@@ -182,6 +258,7 @@ class FriendsChatManager {
   escapeHtml(str) {
     return str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
   }
+
 
   render() {
     const container = document.getElementById('friends-sidebar-content');

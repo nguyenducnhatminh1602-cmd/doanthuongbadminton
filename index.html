@@ -1094,6 +1094,267 @@ body {
   font-size: 0.9rem;
 }
 
+/* Nút gửi ảnh trong chat */
+.chat-img-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: var(--radius-full);
+  background: #f1f5f9;
+  border: 1px solid #e2e8f0;
+  color: #64748b;
+  cursor: pointer;
+  flex-shrink: 0;
+  font-size: 1rem;
+  transition: all 0.2s;
+}
+.chat-img-btn:hover {
+  background: #e0f2fe;
+  color: #0284c7;
+  border-color: #7dd3fc;
+}
+
+/* Ảnh trong bubble chat */
+.message-img {
+  max-width: 220px;
+  max-height: 200px;
+  border-radius: 12px;
+  display: block;
+  cursor: pointer;
+  transition: transform 0.2s, box-shadow 0.2s;
+  margin-bottom: 2px;
+}
+.message-img:hover {
+  transform: scale(1.03);
+  box-shadow: 0 4px 20px rgba(0,0,0,0.25);
+}
+
+/* Lightbox xem ảnh to */
+#chat-lightbox {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.88);
+  z-index: 99999;
+  align-items: center;
+  justify-content: center;
+  cursor: zoom-out;
+  animation: fadeInFast 0.18s ease;
+}
+#chat-lightbox.open { display: flex; }
+#chat-lightbox img {
+  max-width: 90vw;
+  max-height: 88vh;
+  border-radius: 12px;
+  box-shadow: 0 0 60px rgba(0,0,0,0.7);
+}
+
+/* =========================================================
+   SCI-FI INTRO OVERLAY
+   ========================================================= */
+#sci-fi-intro {
+  position: fixed;
+  inset: 0;
+  z-index: 999999;
+  background: #000a14;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  overflow: hidden;
+  cursor: none;
+}
+#sci-fi-intro.hidden { display: none; }
+
+/* Lưới nền */
+.scifi-grid {
+  position: absolute;
+  inset: 0;
+  background-image:
+    linear-gradient(rgba(0,200,255,0.07) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0,200,255,0.07) 1px, transparent 1px);
+  background-size: 50px 50px;
+  animation: scifiGridPan 20s linear infinite;
+  pointer-events: none;
+}
+@keyframes scifiGridPan {
+  from { background-position: 0 0; }
+  to   { background-position: 50px 50px; }
+}
+
+/* Particles */
+.scifi-particles {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  overflow: hidden;
+}
+.scifi-particle {
+  position: absolute;
+  border-radius: 50%;
+  background: rgba(0, 220, 255, 0.6);
+  animation: scifiFloat linear infinite;
+}
+@keyframes scifiFloat {
+  0%   { transform: translateY(100vh) scale(0); opacity: 0; }
+  10%  { opacity: 1; }
+  90%  { opacity: 1; }
+  100% { transform: translateY(-20px) scale(1); opacity: 0; }
+}
+
+/* Vòng tròn quét */
+.scifi-ring {
+  position: absolute;
+  border-radius: 50%;
+  border: 2px solid rgba(0, 220, 255, 0.5);
+  animation: scifiRingExpand 2s ease-out forwards;
+  opacity: 0;
+}
+@keyframes scifiRingExpand {
+  0%   { width: 80px; height: 80px; opacity: 0.9; }
+  100% { width: 300px; height: 300px; opacity: 0; }
+}
+
+/* Bàn tay */
+.scifi-hand-wrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 160px;
+  height: 160px;
+  margin-bottom: 32px;
+  z-index: 2;
+}
+.scifi-hand-glow {
+  position: absolute;
+  inset: -20px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(0,210,255,0.25) 0%, transparent 70%);
+  animation: scifiPulse 2s ease-in-out infinite;
+}
+@keyframes scifiPulse {
+  0%, 100% { transform: scale(1); opacity: 0.8; }
+  50%       { transform: scale(1.15); opacity: 1; }
+}
+.scifi-hand-icon {
+  font-size: 6rem;
+  color: #00d4ff;
+  position: relative;
+  filter: drop-shadow(0 0 18px #00d4ff) drop-shadow(0 0 40px rgba(0,180,255,0.5));
+  animation: scifiHandFloat 3s ease-in-out infinite;
+  z-index: 2;
+  transition: transform 0.3s;
+}
+@keyframes scifiHandFloat {
+  0%, 100% { transform: translateY(0px); }
+  50%       { transform: translateY(-10px); }
+}
+
+/* Scanner laser line */
+.scifi-scan-line {
+  position: absolute;
+  left: 0; right: 0;
+  top: 0;
+  height: 3px;
+  background: linear-gradient(90deg, transparent, #00ffff, #ffffff, #00ffff, transparent);
+  box-shadow: 0 0 12px #00ffff, 0 0 30px rgba(0,255,255,0.5);
+  animation: scifiScanDown 1.5s ease-in-out 0.6s infinite;
+  opacity: 0;
+  border-radius: 2px;
+  pointer-events: none;
+}
+@keyframes scifiScanDown {
+  0%   { top: 0%; opacity: 0; }
+  5%   { opacity: 1; }
+  95%  { opacity: 1; }
+  100% { top: 100%; opacity: 0; }
+}
+
+/* Outer orbit rings */
+.scifi-orbit {
+  position: absolute;
+  border-radius: 50%;
+  border: 1px solid rgba(0,200,255,0.25);
+  animation: scifiOrbitSpin linear infinite;
+}
+.scifi-orbit::after {
+  content: '';
+  position: absolute;
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  background: #00d4ff;
+  box-shadow: 0 0 8px #00d4ff;
+  top: -3px; left: calc(50% - 3px);
+}
+@keyframes scifiOrbitSpin {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+
+/* Text trạng thái */
+.scifi-status {
+  font-family: 'Courier New', monospace;
+  font-size: 0.95rem;
+  letter-spacing: 0.35em;
+  text-transform: uppercase;
+  color: #00d4ff;
+  text-shadow: 0 0 10px #00d4ff;
+  margin-top: 0;
+  z-index: 2;
+  min-height: 1.5em;
+  animation: scifiTypeBlink 0.8s step-end infinite;
+}
+@keyframes scifiTypeBlink {
+  50% { opacity: 0.7; }
+}
+.scifi-sub {
+  font-family: 'Courier New', monospace;
+  font-size: 0.7rem;
+  letter-spacing: 0.25em;
+  color: rgba(0,212,255,0.5);
+  margin-top: 10px;
+  z-index: 2;
+}
+.scifi-progress-bar {
+  width: 260px;
+  height: 3px;
+  background: rgba(0,200,255,0.15);
+  border-radius: 2px;
+  margin-top: 24px;
+  overflow: hidden;
+  z-index: 2;
+  border: 1px solid rgba(0,200,255,0.2);
+}
+.scifi-progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #00b4d8, #00ffff, #ffffff);
+  box-shadow: 0 0 10px #00ffff;
+  border-radius: 2px;
+  width: 0%;
+  transition: width 0.1s linear;
+}
+.scifi-corner {
+  position: absolute;
+  width: 20px; height: 20px;
+  border-color: rgba(0,200,255,0.6);
+  border-style: solid;
+  opacity: 0.7;
+}
+.scifi-corner.tl { top: 20px; left: 20px; border-width: 2px 0 0 2px; }
+.scifi-corner.tr { top: 20px; right: 20px; border-width: 2px 2px 0 0; }
+.scifi-corner.bl { bottom: 20px; left: 20px; border-width: 0 0 2px 2px; }
+.scifi-corner.br { bottom: 20px; right: 20px; border-width: 0 2px 2px 0; }
+
+@keyframes fadeInFast { from { opacity: 0; } to { opacity: 1; } }
+@keyframes scifiFadeOut {
+  0%   { opacity: 1; transform: scale(1); }
+  100% { opacity: 0; transform: scale(1.05); }
+}
+
+
 /* =========================================================
    DOUBLES PAIR APPROVAL SECTION
    ========================================================= */
@@ -1498,6 +1759,38 @@ body {
 </head>
 <body>
 
+  <!-- ==================== SCI-FI INTRO ==================== -->
+  <div id="sci-fi-intro">
+    <div class="scifi-grid"></div>
+    <div class="scifi-particles" id="scifi-particles"></div>
+    <div class="scifi-corner tl"></div>
+    <div class="scifi-corner tr"></div>
+    <div class="scifi-corner bl"></div>
+    <div class="scifi-corner br"></div>
+
+    <div class="scifi-hand-wrap" id="scifi-hand-wrap">
+      <div class="scifi-hand-glow"></div>
+      <!-- Orbit rings -->
+      <div class="scifi-orbit" style="width:200px;height:200px;animation-duration:8s;"></div>
+      <div class="scifi-orbit" style="width:240px;height:240px;animation-duration:12s;animation-direction:reverse;"></div>
+      <!-- Scan line over hand -->
+      <div class="scifi-scan-line"></div>
+      <i class="fa-solid fa-hand scifi-hand-icon" id="scifi-hand-icon"></i>
+    </div>
+
+    <div class="scifi-status" id="scifi-status">KHỞI TẠO HỆ THỐNG...</div>
+    <div class="scifi-sub" id="scifi-sub">ĐOÀN THƯỢNG BADMINTON — BWF RANKING v2.0</div>
+
+    <div class="scifi-progress-bar">
+      <div class="scifi-progress-fill" id="scifi-progress"></div>
+    </div>
+  </div>
+
+  <!-- Lightbox xem ảnh chat -->
+  <div id="chat-lightbox" onclick="this.classList.remove('open')">
+    <img id="chat-lightbox-img" src="" alt="Ảnh chat">
+  </div>
+
   <!-- ==================== HEADER ==================== -->
   <header class="bwf-header">
     <div class="top-bar">
@@ -1806,6 +2099,10 @@ body {
             </div>
 
             <form class="chat-input-bar" onsubmit="event.preventDefault(); const input = document.getElementById('chat-text-input'); friendsChatManager.sendMessage(input.value); input.value = '';">
+              <input type="file" id="chat-image-input" accept="image/*" style="display:none;" onchange="friendsChatManager.sendImageMessage(this.files[0]); this.value='';">
+              <button type="button" class="chat-img-btn" onclick="document.getElementById('chat-image-input').click()" title="Gửi ảnh">
+                <i class="fa-solid fa-image"></i>
+              </button>
               <input type="text" id="chat-text-input" placeholder="Nhập tin nhắn..." autocomplete="off">
               <button type="submit" class="btn btn-primary" style="border-radius: var(--radius-full); padding: 8px 16px;">
                 <i class="fa-solid fa-paper-plane"></i> Gửi
@@ -1962,6 +2259,40 @@ body {
 
           <!-- 3. Quản lý cặp đôi -->
           <div class="admin-sub-section" data-section="pairs" style="display: none;">
+
+            <!-- Form ghép đôi thủ công của Admin -->
+            <div style="background: linear-gradient(135deg, #0f172a 0%, #1e3a5f 100%); border-radius: var(--radius-lg); padding: 20px; margin-bottom: 24px; border: 1px solid rgba(99,179,237,0.3); box-shadow: 0 0 20px rgba(56,189,248,0.1);">
+              <h3 style="font-size: 1.05rem; font-weight: 800; color: #7dd3fc; margin-bottom: 4px; display: flex; align-items: center; gap: 8px;">
+                <i class="fa-solid fa-bolt" style="color: #fbbf24;"></i> Ghép Đôi Thủ Công (Admin)
+              </h3>
+              <p style="font-size: 0.8rem; color: #94a3b8; margin-bottom: 16px;">Ghép 2 VĐV bất kỳ vào bảng xếp hạng ngay lập tức mà không cần sự đồng ý.</p>
+              <div style="display: grid; grid-template-columns: 1fr 1fr 1fr auto; gap: 12px; align-items: end;">
+                <div>
+                  <label style="font-size: 0.78rem; color: #94a3b8; font-weight: 600; display: block; margin-bottom: 6px;">VĐV 1</label>
+                  <select id="admin-force-pair-p1" class="form-select" style="background: rgba(255,255,255,0.07); color: white; border: 1px solid rgba(99,179,237,0.4); border-radius: var(--radius-md); padding: 9px 12px; font-size: 0.85rem; width: 100%;">
+                    <option value="">-- Chọn VĐV 1 --</option>
+                  </select>
+                </div>
+                <div>
+                  <label style="font-size: 0.78rem; color: #94a3b8; font-weight: 600; display: block; margin-bottom: 6px;">VĐV 2</label>
+                  <select id="admin-force-pair-p2" class="form-select" style="background: rgba(255,255,255,0.07); color: white; border: 1px solid rgba(99,179,237,0.4); border-radius: var(--radius-md); padding: 9px 12px; font-size: 0.85rem; width: 100%;">
+                    <option value="">-- Chọn VĐV 2 --</option>
+                  </select>
+                </div>
+                <div>
+                  <label style="font-size: 0.78rem; color: #94a3b8; font-weight: 600; display: block; margin-bottom: 6px;">Nội Dung</label>
+                  <select id="admin-force-pair-cat" class="form-select" style="background: rgba(255,255,255,0.07); color: white; border: 1px solid rgba(99,179,237,0.4); border-radius: var(--radius-md); padding: 9px 12px; font-size: 0.85rem; width: 100%;">
+                    <option value="MD">Đôi Nam (MD)</option>
+                    <option value="WD">Đôi Nữ (WD)</option>
+                    <option value="XD">Đôi Nam Nữ (XD)</option>
+                  </select>
+                </div>
+                <button class="btn btn-primary" onclick="adminManager.adminForcePair()" style="background: linear-gradient(135deg, #0ea5e9, #0284c7); border: none; padding: 9px 18px; font-weight: 700; white-space: nowrap; border-radius: var(--radius-md);">
+                  <i class="fa-solid fa-bolt"></i> Ghép Ngay
+                </button>
+              </div>
+            </div>
+
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
               <h3 style="font-size: 1.2rem; font-weight: 800; color: var(--bwf-navy-dark);">
                 🏸 Danh Sách Cặp Đôi Đã Xác Nhận
@@ -5283,5 +5614,185 @@ function fileToBase64(file) {
       }
     }
   </script>
+
+  <!-- ==================== SCI-FI INTRO SCRIPT ==================== -->
+  <script>
+    (function() {
+      // Chỉ hiển thị 1 lần/phiên
+      if (sessionStorage.getItem('scifi_intro_done')) {
+        document.getElementById('sci-fi-intro').classList.add('hidden');
+        return;
+      }
+
+      // Tạo particles
+      const pContainer = document.getElementById('scifi-particles');
+      for (let i = 0; i < 30; i++) {
+        const p = document.createElement('div');
+        p.className = 'scifi-particle';
+        const size = Math.random() * 3 + 1;
+        p.style.cssText = `
+          width: ${size}px; height: ${size}px;
+          left: ${Math.random() * 100}%;
+          animation-duration: ${Math.random() * 8 + 5}s;
+          animation-delay: ${Math.random() * 5}s;
+          opacity: ${Math.random() * 0.6 + 0.2};
+        `;
+        pContainer.appendChild(p);
+      }
+
+      // Spawn ring waves
+      const handWrap = document.getElementById('scifi-hand-wrap');
+      function spawnRing() {
+        const ring = document.createElement('div');
+        ring.className = 'scifi-ring';
+        ring.style.cssText = 'width:80px;height:80px;';
+        handWrap.appendChild(ring);
+        setTimeout(() => ring.remove(), 2000);
+      }
+      spawnRing();
+      const ringInterval = setInterval(spawnRing, 1800);
+
+      // Mouse move parallax on hand
+      document.getElementById('sci-fi-intro').addEventListener('mousemove', (e) => {
+        const icon = document.getElementById('scifi-hand-icon');
+        if (!icon) return;
+        const cx = window.innerWidth / 2, cy = window.innerHeight / 2;
+        const dx = (e.clientX - cx) / cx * 8;
+        const dy = (e.clientY - cy) / cy * 6;
+        icon.style.transform = `translate(${dx}px, ${dy}px)`;
+      });
+
+      // Click to skip
+      document.getElementById('sci-fi-intro').addEventListener('click', () => finish(true));
+
+      // Sequence animation
+      const statusEl = document.getElementById('scifi-status');
+      const progressEl = document.getElementById('scifi-progress');
+      const messages = [
+        { text: 'KHỞI TẠO HỆ THỐNG...', pct: 15, delay: 0 },
+        { text: 'QUÉT SINH TRẮC HỌC...', pct: 35, delay: 800 },
+        { text: 'XÁC MINH DANH TÍNH...', pct: 60, delay: 1800 },
+        { text: 'ĐANG KẾT NỐI CƠ SỞ DỮ LIỆU...', pct: 80, delay: 2900 },
+        { text: 'CHÀO MỪNG ĐẾN ĐOÀN THƯỢNG BWF', pct: 100, delay: 3800 },
+      ];
+
+      messages.forEach(m => {
+        setTimeout(() => {
+          if (statusEl) statusEl.textContent = m.text;
+          if (progressEl) progressEl.style.width = m.pct + '%';
+        }, m.delay);
+      });
+
+      // Finish after 5s
+      const finishTimer = setTimeout(() => finish(false), 5200);
+
+      function finish(immediate) {
+        clearInterval(ringInterval);
+        clearTimeout(finishTimer);
+        const intro = document.getElementById('sci-fi-intro');
+        if (!intro || intro.classList.contains('hidden')) return;
+        if (statusEl) statusEl.textContent = 'TRUY CẬP ĐƯỢC CẤP PHÉP ✓';
+        if (progressEl) progressEl.style.width = '100%';
+        setTimeout(() => {
+          if (intro) {
+            intro.style.animation = 'scifiFadeOut 0.6s ease forwards';
+            setTimeout(() => {
+              intro.classList.add('hidden');
+            }, 600);
+          }
+          sessionStorage.setItem('scifi_intro_done', '1');
+        }, immediate ? 0 : 500);
+      }
+    })();
+  </script>
+
+  <!-- ==================== ADMIN FORCE-PAIR POPULATE SCRIPT ==================== -->
+  <script>
+    // Populate dropdowns khi tab admin pairs được mở
+    (function() {
+      const origSetSection = AdminManager.prototype.setSection;
+      AdminManager.prototype.setSection = function(section) {
+        origSetSection.call(this, section);
+        if (section === 'pairs') this.populateForcePairDropdowns();
+      };
+
+      AdminManager.prototype.populateForcePairDropdowns = function() {
+        const p1 = document.getElementById('admin-force-pair-p1');
+        const p2 = document.getElementById('admin-force-pair-p2');
+        if (!p1 || !p2) return;
+
+        const users = window.authManager ? (window.authManager.users || {}) : {};
+        let opts = '';
+        for (let uname in users) {
+          const u = users[uname];
+          opts += `<option value="${uname}">${u.fullName} (@${uname} — ${u.gender === 'nam' ? 'Nam' : 'Nữ'} — Lớp ${u.classGroup})</option>`;
+        }
+        p1.innerHTML = '<option value="">-- Chọn VĐV 1 --</option>' + opts;
+        p2.innerHTML = '<option value="">-- Chọn VĐV 2 --</option>' + opts;
+      };
+
+      AdminManager.prototype.adminForcePair = async function() {
+        const p1val = document.getElementById('admin-force-pair-p1')?.value;
+        const p2val = document.getElementById('admin-force-pair-p2')?.value;
+        const cat   = document.getElementById('admin-force-pair-cat')?.value;
+
+        if (!p1val || !p2val) {
+          window.app.showToast('Vui lòng chọn đủ 2 VĐV!', 'error');
+          return;
+        }
+        if (p1val === p2val) {
+          window.app.showToast('VĐV 1 và VĐV 2 không được trùng nhau!', 'error');
+          return;
+        }
+
+        const users = window.authManager.users || {};
+        const u1 = users[p1val], u2 = users[p2val];
+        if (!u1 || !u2) {
+          window.app.showToast('Không tìm thấy thông tin VĐV!', 'error');
+          return;
+        }
+
+        // Kiểm tra đã tồn tại chưa
+        const pairs = window.doublesManager ? (window.doublesManager.pairs || {}) : {};
+        for (let pid in pairs) {
+          const p = pairs[pid];
+          if (p.category === cat && p.status === 'accepted') {
+            if ((p.player1 === p1val && p.player2 === p2val) || (p.player1 === p2val && p.player2 === p1val)) {
+              window.app.showToast('Cặp đôi này đã tồn tại ở nội dung ' + cat + '!', 'error');
+              return;
+            }
+          }
+        }
+
+        if (!confirm(`Xác nhận ghép đôi:\n${u1.fullName} & ${u2.fullName}\nNội dung: ${cat}\n\n(Không cần sự đồng ý từ VĐV)`)) return;
+
+        const pairId = `pair_${Date.now()}_${Math.random().toString(36).substr(2, 5)}`;
+        const newPair = {
+          id: pairId,
+          category: cat,
+          player1: p1val,
+          player2: p2val,
+          player1Name: u1.fullName,
+          player2Name: u2.fullName,
+          player1Class: u1.classGroup,
+          player2Class: u2.classGroup,
+          status: 'accepted',
+          points: 1000,
+          tournamentsCount: 0,
+          createdByAdmin: true,
+          createdAt: new Date().toISOString()
+        };
+
+        try {
+          await window.realtimeDB.set(`pairs/${pairId}`, newPair);
+          window.app.showToast(`✅ Đã ghép đôi ${u1.fullName} & ${u2.fullName} (${cat}) thành công!`, 'success');
+          this.renderPairsSection();
+        } catch (e) {
+          window.app.showToast('Lỗi khi tạo cặp đôi: ' + e.message, 'error');
+        }
+      };
+    })();
+  </script>
+
 </body>
 </html>
