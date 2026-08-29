@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Đoàn Thượng Badminton - Hệ Thống Xếp Hạng BWF & Kết Nối</title>
+  <title>Đoàn Thượng Badminton - Hệ Thống Xếp Hạng ĐTB & Kết Nối</title>
   
   <!-- Font & Icons -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -1942,7 +1942,7 @@ body {
               ☁️ Cấu Hình Máy Chủ Thời Gian Thực (Firebase Realtime DB)
             </h3>
             <p style="font-size: 0.88rem; color: #64748b; margin-bottom: 16px;">
-              Hệ thống hiện tại đã tích hợp sẵn cơ chế đồng bộ trực tuyến. Nếu bạn muốn kết nối vào dự án Firebase riêng của bạn để quản lý cơ sở dữ liệu vĩnh viễn trên đám mây, hãy dán chuỗi JSON cấu hình Firebase bên dưới:
+              Hệ thống đã được kết nối trực tiếp với dự án Firebase của bạn. Nếu cần đổi dự án khác, bạn có thể nhập JSON cấu hình mới tại đây:
             </p>
 
             <div class="form-group">
@@ -2276,11 +2276,19 @@ body {
 /* --- firebase-config.js --- */
 /**
  * ĐOÀN THƯỢNG BADMINTON - BWF REALTIME CLOUD ENGINE
- * Hỗ trợ đồng bộ đa thiết bị tức thì (Real-time Multi-device Sync)
- * Chạy trực tiếp trên GitHub Pages bằng Firebase Realtime Database hoặc Local CloudSync.
+ * Tích hợp Firebase Realtime Database
  */
 
-const DEFAULT_FIREBASE_CONFIG = null;
+const DEFAULT_FIREBASE_CONFIG = {
+  apiKey: "AIzaSyAQTqFJXcWD0XwozL5Y_O-rFVx4e7mXSzU",
+  authDomain: "doanthuongbadminton.firebaseapp.com",
+  databaseURL: "https://doanthuongbadminton-default-rtdb.asia-southeast1.firebasedatabase.app",
+  projectId: "doanthuongbadminton",
+  storageBucket: "doanthuongbadminton.firebasestorage.app",
+  messagingSenderId: "446383872362",
+  appId: "1:446383872362:web:797cd099cad83d0977ed13",
+  measurementId: "G-Y1KN5CSW5G"
+};
 
 class RealtimeEngine {
   constructor() {
@@ -2295,8 +2303,8 @@ class RealtimeEngine {
     // 1. Khởi tạo dữ liệu mặc định ban đầu nếu chưa có
     this.seedInitialData();
 
-    // 2. Kiểm tra cấu hình Firebase tùy chỉnh từ localStorage
-    let config = null;
+    // 2. Lấy cấu hình Firebase
+    let config = DEFAULT_FIREBASE_CONFIG;
     try {
       const customConfig = localStorage.getItem('DT_CUSTOM_FIREBASE_CONFIG');
       if (customConfig) {
@@ -2306,7 +2314,7 @@ class RealtimeEngine {
       console.warn("Lỗi đọc custom config:", e);
     }
 
-    // 3. Khởi tạo Firebase nếu có cấu hình hợp lệ
+    // 3. Khởi tạo Firebase
     if (config && config.apiKey && config.databaseURL && window.firebase) {
       try {
         if (!window.firebase.apps || !window.firebase.apps.length) {
@@ -2314,7 +2322,7 @@ class RealtimeEngine {
         }
         this.db = window.firebase.database();
         this.isFirebaseReady = true;
-        console.log("🏸 Firebase Realtime Database đã kết nối thành công!");
+        console.log("🏸 Firebase Realtime Database đã kết nối thành công trên mọi thiết bị!");
       } catch (e) {
         console.warn("⚠️ Lỗi kết nối Firebase, chuyển sang chế độ tự động:", e.message);
         this.isFirebaseReady = false;
@@ -2552,6 +2560,13 @@ class RealtimeEngine {
             this.setValueByPath(currentDb, path, cloudVal);
             this.saveLocalDb(currentDb);
             callback(cloudVal);
+          } else {
+            // Nếu trên Firebase chưa có nhánh này, tự động đẩy dữ liệu mẫu ban đầu lên
+            const currentDb = this.getLocalDb();
+            const localVal = this.getValueByPath(currentDb, path);
+            if (localVal) {
+              this.db.ref(path).set(localVal);
+            }
           }
         }, (err) => {
           console.warn("Firebase listener notice:", err.message);
@@ -2742,7 +2757,7 @@ class AuthManager {
       throw new Error("Tài khoản không tồn tại trên hệ thống!");
     }
 
-    // So sánh mật khẩu (loại bỏ khoảng trắng thừa nếu có)
+    // So sánh mật khẩu
     const userPass = (user.password || '').trim();
     if (userPass !== cleanPassword && user.password !== password) {
       throw new Error("Mật khẩu không chính xác! Vui lòng kiểm tra lại.");
