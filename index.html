@@ -347,6 +347,42 @@ body {
   justify-content: center;
   font-weight: 700;
   font-size: 0.85rem;
+  overflow: hidden;
+}
+
+.user-avatar-sm img,
+.player-avatar img,
+.profile-avatar-lg img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 50%;
+  display: block;
+}
+
+.profile-avatar-lg {
+  width: 96px;
+  height: 96px;
+  border-radius: 50%;
+  background: var(--bwf-gold);
+  color: var(--bwf-navy-dark);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 800;
+  font-size: 2.2rem;
+  overflow: hidden;
+  border: 3px solid white;
+  box-shadow: var(--shadow-md);
+  flex-shrink: 0;
+}
+
+.avatar-upload-btn-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 20px;
 }
 
 .user-profile-menu .user-meta {
@@ -1869,7 +1905,7 @@ body {
 
           <!-- Logged in state -->
           <div id="auth-logged-in" style="display: none; align-items: center; gap: 10px;">
-            <div class="user-profile-menu" onclick="app.openModal('modal-change-password')" title="Bấm để đổi mật khẩu">
+            <div class="user-profile-menu" onclick="app.openModal('modal-my-profile')" title="Bấm để xem hồ sơ / đổi ảnh đại diện">
               <div class="user-avatar-sm" id="user-avatar-sm">M</div>
               <div class="user-meta">
                 <span class="user-name" id="user-display-name">Nguyễn Đức Nhật Minh</span>
@@ -2447,6 +2483,28 @@ body {
   </div>
 
   <!-- 3. MODAL ĐỔI MẬT KHẨU -->
+  <div id="modal-my-profile" class="modal-backdrop">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3><i class="fa-solid fa-id-card"></i> Hồ Sơ Của Tôi</h3>
+        <button class="modal-close-btn">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="avatar-upload-btn-wrap">
+          <div class="profile-avatar-lg" id="profile-avatar-preview">U</div>
+          <input type="file" id="profile-avatar-input" accept="image/*" style="display:none;" onchange="app.handleAvatarUpload(this)">
+          <button type="button" class="btn btn-secondary btn-sm" id="profile-avatar-upload-btn" onclick="document.getElementById('profile-avatar-input').click();">
+            <i class="fa-solid fa-camera"></i> Đổi Ảnh Đại Diện
+          </button>
+          <span style="font-size: 0.75rem; color: var(--bwf-gray-text); text-align: center;">Chọn ảnh JPG/PNG từ máy hoặc điện thoại của bạn. Ảnh sẽ được tự động cắt vuông và nén để tải nhanh.</span>
+        </div>
+        <button type="button" class="btn btn-primary" style="width: 100%;" onclick="app.closeModal('modal-my-profile'); app.openModal('modal-change-password');">
+          <i class="fa-solid fa-key"></i> Đổi Mật Khẩu
+        </button>
+      </div>
+    </div>
+  </div>
+
   <div id="modal-change-password" class="modal-backdrop">
     <div class="modal-content">
       <div class="modal-header">
@@ -3526,6 +3584,71 @@ class AuthManager {
     return true;
   }
 
+  async updateAvatar(file) {
+    if (!this.currentUser) {
+      throw new Error("Bạn chưa đăng nhập!");
+    }
+    if (!file) {
+      throw new Error("Vui lòng chọn một ảnh!");
+    }
+    if (!file.type || !file.type.startsWith('image/')) {
+      throw new Error("Vui lòng chọn đúng định dạng file ảnh (JPG/PNG)!");
+    }
+
+    const avatarData = await this._compressAvatarImage(file, 400, 0.8);
+    const username = this.currentUser.username;
+
+    await window.realtimeDB.update(`users/${username}`, {
+      avatar: avatarData
+    });
+
+    this.currentUser.avatar = avatarData;
+    localStorage.setItem('DT_CURRENT_USER', JSON.stringify(this.currentUser));
+    this.updateAuthUI();
+
+    return avatarData;
+  }
+
+  _compressAvatarImage(file, maxDim, quality) {
+    return new Promise((resolve, reject) => {
+      // Ảnh HEIC/HEIF (định dạng mặc định máy ảnh iPhone) không được trình duyệt giải mã qua thẻ <img>
+      const nameLower = (file.name || '').toLowerCase();
+      if (/heic|heif/i.test(file.type || '') || nameLower.endsWith('.heic') || nameLower.endsWith('.heif')) {
+        reject(new Error('Ảnh định dạng HEIC (mặc định của iPhone) chưa được hỗ trợ. Trên iPhone vào Cài đặt > Máy ảnh > Định dạng > chọn "Tương thích cao" (Most Compatible), hoặc chọn ảnh JPG/PNG khác.'));
+        return;
+      }
+
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const img = new Image();
+        img.onload = () => {
+          try {
+            if (!img.width || !img.height) {
+              reject(new Error('Không đọc được kích thước ảnh, vui lòng thử ảnh khác.'));
+              return;
+            }
+            // Cắt ảnh thành hình vuông chính giữa để avatar tròn luôn cân đối
+            const side = Math.min(img.width, img.height);
+            const sx = (img.width - side) / 2;
+            const sy = (img.height - side) / 2;
+            const size = Math.min(maxDim, side);
+            const canvas = document.createElement('canvas');
+            canvas.width = size; canvas.height = size;
+            const ctx = canvas.getContext('2d');
+            ctx.drawImage(img, sx, sy, side, side, 0, 0, size, size);
+            resolve(canvas.toDataURL('image/jpeg', quality));
+          } catch (err) {
+            reject(new Error('Lỗi khi xử lý ảnh: ' + err.message));
+          }
+        };
+        img.onerror = () => reject(new Error('Trình duyệt không mở được ảnh này. Vui lòng thử ảnh JPG/PNG khác.'));
+        img.src = e.target.result;
+      };
+      reader.onerror = () => reject(new Error('Không đọc được file ảnh, vui lòng thử lại.'));
+      reader.readAsDataURL(file);
+    });
+  }
+
   async logout() {
     if (this.currentUser) {
       const uname = this.currentUser.username;
@@ -3567,8 +3690,17 @@ class AuthManager {
       if (userDisplayRole) {
         userDisplayRole.textContent = this.isAdmin() ? '🛡️ Admin BQT' : `🏸 Lớp ${this.currentUser.classGroup || 'Học sinh'}`;
       }
+      const initialLetter = (displayName.charAt(0) || 'U').toUpperCase();
       if (userAvatarSm) {
-        userAvatarSm.textContent = (displayName.charAt(0) || 'U').toUpperCase();
+        userAvatarSm.innerHTML = this.currentUser.avatar
+          ? `<img src="${this.currentUser.avatar}" alt="${displayName}">`
+          : initialLetter;
+      }
+      const profileAvatarPreview = document.getElementById('profile-avatar-preview');
+      if (profileAvatarPreview) {
+        profileAvatarPreview.innerHTML = this.currentUser.avatar
+          ? `<img src="${this.currentUser.avatar}" alt="${displayName}">`
+          : initialLetter;
       }
 
       if (adminNavBtn) {
@@ -4228,7 +4360,11 @@ class FriendsChatManager {
     const pName = partner.fullName || partner.username || friendUsername;
     if (partnerNameEl) partnerNameEl.textContent = pName;
     if (partnerMetaEl) partnerMetaEl.textContent = `Lớp ${partner.classGroup || 'CLB'} • @${partner.username || friendUsername}`;
-    if (partnerAvatarEl) partnerAvatarEl.textContent = (pName.charAt(0) || 'U').toUpperCase();
+    if (partnerAvatarEl) {
+      partnerAvatarEl.innerHTML = partner.avatar
+        ? `<img src="${partner.avatar}" alt="${pName}">`
+        : (pName.charAt(0) || 'U').toUpperCase();
+    }
 
     this.renderChatMessages();
     this.renderFriendsList();
@@ -4472,7 +4608,7 @@ class FriendsChatManager {
       html += `
         <div class="friend-item ${isActive ? 'active' : ''}" onclick="friendsChatManager.openChatWith('${uname}')">
           <div class="friend-avatar-wrap">
-            <div class="player-avatar" style="width: 38px; height: 38px; font-size: 0.85rem;">${initial}</div>
+            <div class="player-avatar" style="width: 38px; height: 38px; font-size: 0.85rem;">${friend.avatar ? `<img src="${friend.avatar}" alt="${fname}"/>` : initial}</div>
             <span class="online-indicator ${isOnline ? '' : 'offline'}"></span>
           </div>
           <div class="friend-info">
@@ -4517,7 +4653,7 @@ class FriendsChatManager {
 
         html += `
           <div class="friend-item" style="cursor: default;">
-            <div class="player-avatar" style="width: 36px; height: 36px; font-size: 0.8rem;">${(fname.charAt(0) || 'U').toUpperCase()}</div>
+            <div class="player-avatar" style="width: 36px; height: 36px; font-size: 0.8rem;">${u.avatar ? `<img src="${u.avatar}" alt="${fname}"/>` : (fname.charAt(0) || 'U').toUpperCase()}</div>
             <div class="friend-info">
               <div class="friend-name">${fname}</div>
               <div class="friend-last-msg">Lớp ${u.classGroup || 'CLB'} • @${uname}</div>
@@ -5111,7 +5247,7 @@ class AdminManager {
         <tr>
           <td>
             <div class="player-cell">
-              <div class="player-avatar" style="width: 34px; height: 34px; font-size: 0.8rem;">${initial}</div>
+              <div class="player-avatar" style="width: 34px; height: 34px; font-size: 0.8rem;">${u.avatar ? `<img src="${u.avatar}" alt="${fname}"/>` : initial}</div>
               <div>
                 <strong>${fname}</strong>
                 <div style="font-size: 0.75rem; color: #94a3b8;">@${uname}</div>
@@ -5669,6 +5805,31 @@ class App {
   openModal(modalId) {
     const modal = document.getElementById(modalId);
     if (modal) modal.classList.add('open');
+  }
+
+  async handleAvatarUpload(inputEl) {
+    const file = inputEl && inputEl.files ? inputEl.files[0] : null;
+    if (!file) return;
+
+    const btn = document.getElementById('profile-avatar-upload-btn');
+    const originalBtnHtml = btn ? btn.innerHTML : '';
+    if (btn) {
+      btn.disabled = true;
+      btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Đang tải ảnh lên...';
+    }
+
+    try {
+      await window.authManager.updateAvatar(file);
+      this.showToast('Đã cập nhật ảnh đại diện thành công!', 'success');
+    } catch (e) {
+      this.showToast(e && e.message ? e.message : 'Lỗi khi tải ảnh lên, vui lòng thử lại.', 'error');
+    } finally {
+      inputEl.value = '';
+      if (btn) {
+        btn.disabled = false;
+        btn.innerHTML = originalBtnHtml;
+      }
+    }
   }
 
   closeModal(modalId) {
