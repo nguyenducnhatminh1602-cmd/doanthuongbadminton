@@ -3104,8 +3104,50 @@ class RealtimeEngine {
         this.channel.postMessage({ type: 'DATA_UPDATED', path: 'root', data });
       }
     } catch (e) {
+      // Bộ nhớ cục bộ (localStorage) đầy - thường do lưu nhiều ảnh chat base64.
+      // Tự động dọn bớt ảnh chat cũ khỏi bản sao lưu cục bộ (ảnh vẫn còn nguyên trên Firebase)
+      // rồi thử lưu lại, thay vì âm thầm bỏ qua khiến các tính năng khác cũng bị hỏng theo.
+      if (e && (e.name === 'QuotaExceededError' || e.code === 22 || e.code === 1014)) {
+        const freed = this._pruneOldChatImages(data);
+        if (freed) {
+          try {
+            localStorage.setItem(this.storageKey, JSON.stringify(data));
+            if (this.channel) {
+              this.channel.postMessage({ type: 'DATA_UPDATED', path: 'root', data });
+            }
+            return;
+          } catch (e2) {
+            console.warn("Vẫn không lưu được sau khi dọn dẹp bộ nhớ cục bộ:", e2.message);
+          }
+        }
+      }
       console.warn("Lỗi lưu local DB:", e);
     }
+  }
+
+  // Giữ lại tối đa 15 tin nhắn gần nhất mỗi phòng chat trong bản sao cục bộ để tránh đầy localStorage.
+  // Ảnh cũ hơn không bị mất - vẫn còn trên Firebase và sẽ tự đồng bộ lại khi tải lại trang.
+  _pruneOldChatImages(data) {
+    if (!data.chat) return false;
+    let prunedAny = false;
+    for (let roomKey in data.chat) {
+      const room = data.chat[roomKey];
+      if (!room || typeof room !== 'object') continue;
+      const msgIds = Object.keys(room);
+      if (msgIds.length > 15) {
+        const sorted = msgIds
+          .map(id => ({ id, msg: room[id] }))
+          .sort((a, b) => new Date(a.msg.timestamp) - new Date(b.msg.timestamp));
+        const toRemove = sorted.slice(0, sorted.length - 15);
+        toRemove.forEach(({ id, msg }) => {
+          if (msg && msg.type === 'image') {
+            delete room[id];
+            prunedAny = true;
+          }
+        });
+      }
+    }
+    return prunedAny;
   }
 
   listen(path, callback) {
@@ -4221,6 +4263,99 @@ class FriendsChatManager {
     }
   }
 
+  async sendImageMessage(file) {
+    if (!window.authManager.isLoggedIn()) {
+      window.app.showToast('Vui lòng đăng nhập trước!', 'error');
+      return;
+    }
+    if (!this.activeChatPartner) {
+      window.app.showToast('Vui lòng chọn một người bạn để chat trước khi gửi ảnh!', 'error');
+      return;
+    }
+    if (!file) return;
+
+    if (!file.type || !file.type.startsWith('image/')) {
+      window.app.showToast('Vui lòng chọn một file ảnh hợp lệ (JPG, PNG, WEBP...).', 'error');
+      return;
+    }
+
+    // Giới hạn file gốc 12MB (ảnh sẽ được nén nhỏ lại trước khi gửi đi,
+    // KHÔNG chặn sớm ở mức 2MB vì ảnh chụp trực tiếp từ điện thoại đời mới thường đã 3-8MB)
+    if (file.size > 12 * 1024 * 1024) {
+      window.app.showToast('Ảnh quá lớn! Vui lòng chọn ảnh nhỏ hơn 12MB.', 'error');
+      return;
+    }
+
+    const me = window.authManager.currentUser.username;
+    const partner = this.activeChatPartner;
+    const roomKey = this.getChatRoomKey(me, partner);
+
+    window.app.showToast('Đang gửi ảnh...', 'info');
+
+    try {
+      const imageData = await this._compressImage(file, 800, 0.75);
+      const msgId = `msg_${Date.now()}`;
+      const newMsg = {
+        id: msgId,
+        sender: me,
+        type: 'image',
+        imageData: imageData,
+        timestamp: new Date().toISOString()
+      };
+
+      await window.realtimeDB.set(`chat/${roomKey}/${msgId}`, newMsg);
+      window.app.showToast('Đã gửi ảnh!', 'success');
+
+      const msgArea = document.getElementById('chat-messages-area');
+      if (msgArea) {
+        setTimeout(() => { msgArea.scrollTop = msgArea.scrollHeight; }, 100);
+      }
+    } catch (e) {
+      console.error('sendImageMessage error:', e);
+      window.app.showToast(e && e.message ? e.message : 'Lỗi khi gửi ảnh, vui lòng thử lại.', 'error');
+    }
+  }
+
+  _compressImage(file, maxDim, quality) {
+    return new Promise((resolve, reject) => {
+      // Ảnh HEIC/HEIF (định dạng mặc định máy ảnh iPhone) không được trình duyệt giải mã qua thẻ <img>
+      const nameLower = (file.name || '').toLowerCase();
+      if (/heic|heif/i.test(file.type || '') || nameLower.endsWith('.heic') || nameLower.endsWith('.heif')) {
+        reject(new Error('Ảnh định dạng HEIC (mặc định của iPhone) chưa được hỗ trợ. Trên iPhone vào Cài đặt > Máy ảnh > Định dạng > chọn "Tương thích cao" (Most Compatible), hoặc chọn ảnh JPG/PNG khác.'));
+        return;
+      }
+
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const img = new Image();
+        img.onload = () => {
+          try {
+            if (!img.width || !img.height) {
+              reject(new Error('Không đọc được kích thước ảnh, vui lòng thử ảnh khác.'));
+              return;
+            }
+            const canvas = document.createElement('canvas');
+            let w = img.width, h = img.height;
+            if (w > maxDim || h > maxDim) {
+              if (w > h) { h = Math.round(h * maxDim / w); w = maxDim; }
+              else       { w = Math.round(w * maxDim / h); h = maxDim; }
+            }
+            canvas.width = w; canvas.height = h;
+            const ctx = canvas.getContext('2d');
+            ctx.drawImage(img, 0, 0, w, h);
+            resolve(canvas.toDataURL('image/jpeg', quality));
+          } catch (err) {
+            reject(new Error('Lỗi khi xử lý ảnh: ' + err.message));
+          }
+        };
+        img.onerror = () => reject(new Error('Trình duyệt không mở được ảnh này. Vui lòng thử ảnh JPG/PNG khác.'));
+        img.src = e.target.result;
+      };
+      reader.onerror = () => reject(new Error('Không đọc được file ảnh, vui lòng thử lại.'));
+      reader.readAsDataURL(file);
+    });
+  }
+
   renderChatMessages() {
     const msgArea = document.getElementById('chat-messages-area');
     if (!msgArea || !this.activeChatPartner || !window.authManager.isLoggedIn()) return;
@@ -4246,12 +4381,22 @@ class FriendsChatManager {
     msgList.forEach(m => {
       const isMe = m.sender === me;
       const timeStr = new Date(m.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-      html += `
-        <div class="message-bubble ${isMe ? 'outgoing' : 'incoming'}">
-          <div>${this.escapeHtml(m.text)}</div>
-          <div class="message-time">${timeStr}</div>
-        </div>
-      `;
+
+      if (m.type === 'image' && m.imageData) {
+        html += `
+          <div class="message-bubble ${isMe ? 'outgoing' : 'incoming'}">
+            <img class="message-img" src="${m.imageData}" alt="Ảnh" onclick="document.getElementById('chat-lightbox-img').src=this.src; document.getElementById('chat-lightbox').classList.add('open');">
+            <div class="message-time">${timeStr}</div>
+          </div>
+        `;
+      } else {
+        html += `
+          <div class="message-bubble ${isMe ? 'outgoing' : 'incoming'}">
+            <div>${this.escapeHtml(m.text)}</div>
+            <div class="message-time">${timeStr}</div>
+          </div>
+        `;
+      }
     });
 
     msgArea.innerHTML = html;
