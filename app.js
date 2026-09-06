@@ -25,6 +25,12 @@ class App {
       this.updateOnlineIndicator();
       window.addEventListener('online', () => this.updateOnlineIndicator());
       window.addEventListener('offline', () => this.updateOnlineIndicator());
+
+      if (sessionStorage.getItem('scifi_intro_done')) {
+        setTimeout(() => {
+          if (window.newsManager) window.newsManager.showWelcomeLatestNews();
+        }, 500);
+      }
     });
   }
 

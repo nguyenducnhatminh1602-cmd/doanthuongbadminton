@@ -217,13 +217,65 @@ class RealtimeEngine {
             title: "Khai mạc Bảng Xếp Hạng Đoàn Thượng Badminton 2026",
             category: "Giải đấu",
             date: new Date().toLocaleDateString('vi-VN'),
-            author: "Ban Quản Trị",
-            content: "Chào mừng tất cả các bạn học sinh tham gia hệ thống xếp hạng BWF Đoàn Thượng. Bảng xếp hạng cập nhật liên tục thành tích các nội dung Đơn Nam, Đơn Nữ, Đôi Nam, Đôi Nữ và Đôi Nam Nữ.",
+            author: "Nguyễn Đức Nhật Minh (Admin)",
+            content: "Chào mừng tất cả các bạn học sinh tham gia hệ thống xếp hạng BWF Đoàn Thượng. Bảng xếp hạng cập nhật liên tục thành tích các nội dung Đơn Nam, Đơn Nữ, Đôi Nam, Đôi Nữ và Đôi Nam Nữ. Chúc các VĐV thi đấu bùng nổ và đạt kết quả cao nhất!",
             imageUrl: "https://images.unsplash.com/photo-1626224583764-f87db24ac4ea?auto=format&fit=crop&w=800&q=80",
             documents: [
               { name: "Dieu_Le_Giai_Cau_Long_Doan_Thuong_2026.pdf", url: "#", size: "1.2 MB" }
             ],
+            createdAt: new Date(Date.now() - 3600000).toISOString()
+          },
+          "news_2": {
+            id: "news_2",
+            title: "Lịch Thi Đấu & Quy Định Tính Điểm BWF Mùa Giải Mới",
+            category: "Thông báo",
+            date: new Date().toLocaleDateString('vi-VN'),
+            author: "Nguyễn Đức Hiếu (Admin)",
+            content: "Ban Quản Trị xin thông báo lịch thi đấu vòng loại các nội dung Đôi Nam, Đôi Nữ và Đôi Nam Nữ. Các cặp đôi vui lòng hoàn tất xác nhận ghép đôi trên hệ thống trước 17h00 thứ 6 hàng tuần để được xếp lịch thi đấu chính thức.",
+            imageUrl: "https://images.unsplash.com/photo-1541534741688-6078c6bfb5c5?auto=format&fit=crop&w=800&q=80",
+            documents: [
+              { name: "Lich_Thi_Dau_Vong_Loai_2026.xlsx", url: "#", size: "450 KB" }
+            ],
             createdAt: new Date().toISOString()
+          }
+        },
+        newsComments: {
+          "news_1": {
+            "cmt_1": {
+              id: "cmt_1",
+              newsId: "news_1",
+              authorUsername: "nguyenducnhatminh",
+              authorName: "Nguyễn Đức Nhật Minh",
+              authorAvatar: "",
+              authorClass: "Ban Quản Trị",
+              authorRole: "admin",
+              content: "Chúc mừng giải đấu chính thức khởi tranh! Chúc các bạn VĐV thi đấu hết mình 🏸 @nguyenduchieu @tranvanan",
+              createdAt: new Date(Date.now() - 2400000).toISOString()
+            },
+            "cmt_2": {
+              id: "cmt_2",
+              newsId: "news_1",
+              authorUsername: "tranvanan",
+              authorName: "Trần Văn An",
+              authorAvatar: "",
+              authorClass: "12A1",
+              authorRole: "member",
+              content: "Quyết tâm giật cúp Đơn Nam năm nay! Cố lên nhé @phamhoangnam 🔥",
+              createdAt: new Date(Date.now() - 1200000).toISOString()
+            }
+          },
+          "news_2": {
+            "cmt_3": {
+              id: "cmt_3",
+              newsId: "news_2",
+              authorUsername: "nguyenthimai",
+              authorName: "Nguyễn Thị Mai",
+              authorAvatar: "",
+              authorClass: "11B2",
+              authorRole: "member",
+              content: "Cặp Đôi Nữ của mình với @lethithao đã sẵn sàng ra sân rồi nhé! 💪",
+              createdAt: new Date(Date.now() - 600000).toISOString()
+            }
           }
         },
         friends: {},
