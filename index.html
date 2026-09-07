@@ -4579,6 +4579,14 @@ window.doublesManager = new DoublesManager();
  * Kết bạn giữa các học sinh/thành viên & Nhắn tin trực tuyến thời gian thực
  */
 
+function openChatImage(src) {
+  const lightbox = document.getElementById('chat-lightbox');
+  const img = document.getElementById('chat-lightbox-img');
+  if (!lightbox || !img || !src) return;
+  img.src = src;
+  lightbox.classList.add('open');
+}
+
 class FriendsChatManager {
   constructor() {
     this.activeFriendTab = 'friends';
@@ -4762,9 +4770,15 @@ class FriendsChatManager {
     msgList.forEach(m => {
       const isMe = m.sender === me;
       const timeStr = new Date(m.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+      const imageHtml = m.type === 'image' && m.image
+        ? `<img class="message-img" src="${m.image}" alt="Ảnh" loading="lazy" onclick="openChatImage(this.src)">`
+        : '';
+      const textHtml = m.text ? `<div>${this.escapeHtml(m.text)}</div>` : '';
+
       html += `
         <div class="message-bubble ${isMe ? 'outgoing' : 'incoming'}">
-          <div>${this.escapeHtml(m.text)}</div>
+          ${imageHtml}
+          ${textHtml}
           <div class="message-time">${timeStr}</div>
         </div>
       `;
