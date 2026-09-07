@@ -2122,8 +2122,9 @@ body {
 </style>
 
   <!-- Firebase SDKs (Compat v10 for direct browser & GitHub Pages support) -->
-  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-database-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.13.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.13.2/firebase-database-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.13.2/firebase-messaging-compat.js"></script>
 </head>
 <body>
 
@@ -4595,6 +4596,13 @@ class FriendsChatManager {
     this.friends = {};
     this.chats = {};
     this.friendRequests = {};
+
+    // ===== THÔNG BÁO TIN NHẮN =====
+    this.chatDataInitialized = false;
+    this.seenMessageIds = new Set();
+    this.notificationPermissionRequested = false;
+    this.audioContext = null;
+
     this.init();
   }
 
@@ -4616,12 +4624,178 @@ class FriendsChatManager {
     });
 
     window.realtimeDB.listen('chat', (data) => {
-      this.chats = data || {};
+      const newChatData = data || {};
+
+      // Lần đầu chỉ ghi nhận các tin cũ, không báo hàng loạt.
+      if (!this.chatDataInitialized) {
+        for (const roomKey in newChatData) {
+          const room = newChatData[roomKey] || {};
+          for (const messageId in room) {
+            this.seenMessageIds.add(messageId);
+          }
+        }
+        this.chatDataInitialized = true;
+      } else {
+        this.checkForNewMessages(newChatData);
+      }
+
+      this.chats = newChatData;
       if (this.activeChatPartner) {
         this.renderChatMessages();
       }
       this.renderFriendsList();
     });
+  }
+
+  // ===== HỆ THỐNG THÔNG BÁO =====
+
+  async requestNotificationPermission() {
+    if (!('Notification' in window)) {
+      console.warn('Trình duyệt không hỗ trợ thông báo.');
+      return false;
+    }
+
+    if (Notification.permission === 'granted') return true;
+    if (Notification.permission === 'denied') return false;
+    if (this.notificationPermissionRequested) return false;
+
+    this.notificationPermissionRequested = true;
+
+    try {
+      const permission = await Notification.requestPermission();
+      return permission === 'granted';
+    } catch (e) {
+      console.warn('Không thể xin quyền thông báo:', e);
+      return false;
+    }
+  }
+
+  initNotificationSound() {
+    try {
+      if (!this.audioContext) {
+        const AudioCtx = window.AudioContext || window.webkitAudioContext;
+        if (AudioCtx) this.audioContext = new AudioCtx();
+      }
+
+      if (this.audioContext && this.audioContext.state === 'suspended') {
+        this.audioContext.resume().catch(() => {});
+      }
+    } catch (e) {
+      console.warn('Không khởi tạo được âm thanh thông báo:', e);
+    }
+  }
+
+  playNotificationSound() {
+    try {
+      this.initNotificationSound();
+      const ctx = this.audioContext;
+      if (!ctx) return;
+
+      const now = ctx.currentTime;
+
+      const osc1 = ctx.createOscillator();
+      const gain1 = ctx.createGain();
+      osc1.type = 'sine';
+      osc1.frequency.setValueAtTime(880, now);
+      osc1.frequency.exponentialRampToValueAtTime(660, now + 0.12);
+      gain1.gain.setValueAtTime(0.0001, now);
+      gain1.gain.exponentialRampToValueAtTime(0.16, now + 0.015);
+      gain1.gain.exponentialRampToValueAtTime(0.0001, now + 0.20);
+      osc1.connect(gain1);
+      gain1.connect(ctx.destination);
+      osc1.start(now);
+      osc1.stop(now + 0.21);
+
+      const osc2 = ctx.createOscillator();
+      const gain2 = ctx.createGain();
+      osc2.type = 'sine';
+      osc2.frequency.setValueAtTime(1175, now + 0.10);
+      osc2.frequency.exponentialRampToValueAtTime(880, now + 0.24);
+      gain2.gain.setValueAtTime(0.0001, now + 0.10);
+      gain2.gain.exponentialRampToValueAtTime(0.12, now + 0.115);
+      gain2.gain.exponentialRampToValueAtTime(0.0001, now + 0.30);
+      osc2.connect(gain2);
+      gain2.connect(ctx.destination);
+      osc2.start(now + 0.10);
+      osc2.stop(now + 0.31);
+    } catch (e) {
+      console.warn('Lỗi phát âm thanh thông báo:', e);
+    }
+  }
+
+  checkForNewMessages(newChatData) {
+    if (!window.authManager || !window.authManager.isLoggedIn()) return;
+
+    const me = window.authManager.currentUser?.username;
+    if (!me) return;
+
+    for (const roomKey in newChatData) {
+      const room = newChatData[roomKey] || {};
+
+      for (const messageId in room) {
+        if (this.seenMessageIds.has(messageId)) continue;
+
+        const message = room[messageId];
+        this.seenMessageIds.add(messageId);
+
+        if (!message || message.sender === me) continue;
+
+        this.handleIncomingMessage(message, roomKey);
+      }
+    }
+  }
+
+  handleIncomingMessage(message, roomKey) {
+    const senderUsername = message.sender;
+    const sender = this.users[senderUsername] || {};
+    const senderName = sender.fullName || senderUsername || 'Bạn bè';
+
+    let preview = '';
+    if (message.type === 'image') {
+      preview = '📷 Đã gửi một ảnh';
+    } else {
+      preview = String(message.text || 'Đã gửi một tin nhắn');
+      if (preview.length > 80) preview = preview.substring(0, 80) + '…';
+    }
+
+    // Âm thanh luôn hoạt động khi trang đang mở.
+    this.playNotificationSound();
+
+    // Toast trong website.
+    try {
+      if (window.app && typeof window.app.showToast === 'function') {
+        window.app.showToast(`💬 ${senderName}: ${preview}`, 'info');
+      }
+    } catch (e) {}
+
+    // Thông báo trình duyệt nếu người dùng đã cấp quyền.
+    this.showBrowserNotification(senderName, preview, senderUsername);
+  }
+
+  showBrowserNotification(senderName, preview, senderUsername) {
+    if (!('Notification' in window)) return;
+    if (Notification.permission !== 'granted') return;
+
+    try {
+      const notification = new Notification(`💬 Tin nhắn từ ${senderName}`, {
+        body: preview,
+        icon: './favicon.svg',
+        tag: `chat_${senderUsername}`,
+        renotify: true
+      });
+
+      notification.onclick = () => {
+        window.focus();
+        notification.close();
+        this.openChatWith(senderUsername);
+      };
+
+      setTimeout(() => {
+        try { notification.close(); } catch (e) {}
+      }, 6000);
+    } catch (e) {
+      console.warn('Không thể tạo thông báo trình duyệt:', e);
+    }
   }
 
   setFriendTab(tab) {
@@ -4646,8 +4820,8 @@ class FriendsChatManager {
     const req = {
       id: reqId,
       senderUsername: me,
-      senderName: window.authManager.currentUser.fullName || me,
-      senderClass: window.authManager.currentUser.classGroup || 'N/A',
+      senderName: window.authManager.currentUser.fullName,
+      senderClass: window.authManager.currentUser.classGroup,
       receiverUsername: targetUsername,
       status: 'pending',
       createdAt: new Date().toISOString()
@@ -4675,8 +4849,15 @@ class FriendsChatManager {
     await window.realtimeDB.update(`friendRequests/${reqId}`, { status: 'rejected' });
   }
 
-  openChatWith(friendUsername) {
+  async openChatWith(friendUsername) {
     this.activeChatPartner = friendUsername;
+
+    // Xin quyền thông báo + kích hoạt âm thanh sau thao tác của người dùng.
+    this.requestNotificationPermission();
+    this.initNotificationSound();
+    if (window.fcmManager) {
+      window.fcmManager.enable(true);
+    }
     const partner = this.users[friendUsername];
     if (!partner) return;
 
@@ -4689,10 +4870,9 @@ class FriendsChatManager {
     if (noChatPlaceholder) noChatPlaceholder.style.display = 'none';
     if (chatWindow) chatWindow.style.display = 'flex';
 
-    const pName = partner.fullName || partner.username || friendUsername;
-    if (partnerNameEl) partnerNameEl.textContent = pName;
-    if (partnerMetaEl) partnerMetaEl.textContent = `Lớp ${partner.classGroup || 'CLB'} • @${partner.username || friendUsername}`;
-    if (partnerAvatarEl) partnerAvatarEl.textContent = (pName.charAt(0) || 'U').toUpperCase();
+    if (partnerNameEl) partnerNameEl.textContent = partner.fullName;
+    if (partnerMetaEl) partnerMetaEl.textContent = `Lớp ${partner.classGroup} • @${partner.username}`;
+    if (partnerAvatarEl) partnerAvatarEl.textContent = partner.fullName.charAt(0).toUpperCase();
 
     this.renderChatMessages();
     this.renderFriendsList();
@@ -4715,7 +4895,9 @@ class FriendsChatManager {
     const newMsg = {
       id: msgId,
       sender: me,
+      receiver: partner,
       text: cleanText,
+      type: 'text',
       timestamp: new Date().toISOString()
     };
 
@@ -4728,21 +4910,69 @@ class FriendsChatManager {
   }
 
   async sendImageMessage(file) {
-    if (!window.authManager.isLoggedIn() || !this.activeChatPartner || !file) return;
-    try {
-      if (!file.type || !file.type.startsWith('image/')) throw new Error('Tệp được chọn phải là hình ảnh!');
-      if (file.size > 5 * 1024 * 1024) throw new Error('Ảnh tối đa 5MB!');
-      const image = await compressImageToDataURL(file, 900, 0.78);
-      const me = window.authManager.currentUser.username;
-      const roomKey = this.getChatRoomKey(me, this.activeChatPartner);
-      const msgId = `msg_${Date.now()}_${Math.random().toString(36).slice(2,7)}`;
-      const newMsg = { id: msgId, sender: me, type: 'image', image, text: '', timestamp: new Date().toISOString() };
-      await window.realtimeDB.set(`chat/${roomKey}/${msgId}`, newMsg);
-      const msgArea = document.getElementById('chat-messages-area');
-      if (msgArea) setTimeout(() => { msgArea.scrollTop = msgArea.scrollHeight; }, 100);
-    } catch (e) {
-      window.app.showToast('Không thể gửi ảnh: ' + e.message, 'error');
+    if (!window.authManager.isLoggedIn() || !this.activeChatPartner) return;
+    if (!file) return;
+
+    // Giới hạn 2MB
+    if (file.size > 2 * 1024 * 1024) {
+      window.app.showToast('Ảnh quá lớn! Vui lòng chọn ảnh nhỏ hơn 2MB.', 'error');
+      return;
     }
+
+    const me = window.authManager.currentUser.username;
+    const partner = this.activeChatPartner;
+    const roomKey = this.getChatRoomKey(me, partner);
+
+    // Đọc ảnh và nén nếu cần
+    window.app.showToast('Đang gửi ảnh...', 'info');
+
+    try {
+      const imageData = await this._compressImage(file, 800, 0.75);
+      const msgId = `msg_${Date.now()}`;
+      const newMsg = {
+        id: msgId,
+        sender: me,
+        receiver: partner,
+        type: 'image',
+        imageData: imageData,
+        timestamp: new Date().toISOString()
+      };
+
+      await window.realtimeDB.set(`chat/${roomKey}/${msgId}`, newMsg);
+      window.app.showToast('Đã gửi ảnh!', 'success');
+
+      const msgArea = document.getElementById('chat-messages-area');
+      if (msgArea) {
+        setTimeout(() => { msgArea.scrollTop = msgArea.scrollHeight; }, 100);
+      }
+    } catch (e) {
+      window.app.showToast('Lỗi khi gửi ảnh: ' + e.message, 'error');
+    }
+  }
+
+  _compressImage(file, maxDim, quality) {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const img = new Image();
+        img.onload = () => {
+          const canvas = document.createElement('canvas');
+          let w = img.width, h = img.height;
+          if (w > maxDim || h > maxDim) {
+            if (w > h) { h = Math.round(h * maxDim / w); w = maxDim; }
+            else       { w = Math.round(w * maxDim / h); h = maxDim; }
+          }
+          canvas.width = w; canvas.height = h;
+          const ctx = canvas.getContext('2d');
+          ctx.drawImage(img, 0, 0, w, h);
+          resolve(canvas.toDataURL('image/jpeg', quality));
+        };
+        img.onerror = reject;
+        img.src = e.target.result;
+      };
+      reader.onerror = reject;
+      reader.readAsDataURL(file);
+    });
   }
 
   renderChatMessages() {
@@ -4770,34 +5000,32 @@ class FriendsChatManager {
     msgList.forEach(m => {
       const isMe = m.sender === me;
       const timeStr = new Date(m.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-      const imageHtml = m.type === 'image' && m.image
-        ? `<img class="message-img" src="${m.image}" alt="Ảnh" loading="lazy" onclick="openChatImage(this.src)">`
-        : '';
-      const textHtml = m.text ? `<div>${this.escapeHtml(m.text)}</div>` : '';
 
-      html += `
-        <div class="message-bubble ${isMe ? 'outgoing' : 'incoming'}">
-          ${imageHtml}
-          ${textHtml}
-          <div class="message-time">${timeStr}</div>
-        </div>
-      `;
+      if (m.type === 'image' && m.imageData) {
+        html += `
+          <div class="message-bubble ${isMe ? 'outgoing' : 'incoming'}">
+            <img class="message-img" src="${m.imageData}" alt="Ảnh" onclick="document.getElementById('chat-lightbox-img').src=this.src; document.getElementById('chat-lightbox').classList.add('open');">
+            <div class="message-time">${timeStr}</div>
+          </div>
+        `;
+      } else {
+        html += `
+          <div class="message-bubble ${isMe ? 'outgoing' : 'incoming'}">
+            <div>${this.escapeHtml(m.text || '')}</div>
+            <div class="message-time">${timeStr}</div>
+          </div>
+        `;
+      }
     });
 
     msgArea.innerHTML = html;
     msgArea.scrollTop = msgArea.scrollHeight;
   }
 
-  openLightbox(src) {
-    const box = document.getElementById('chat-lightbox');
-    const img = document.getElementById('chat-lightbox-img');
-    if (box && img) { img.src = src; box.style.display = 'flex'; }
+  escapeHtml(str) {
+    return str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
   }
 
-  escapeHtml(str) {
-    if (!str) return '';
-    return String(str).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
-  }
 
   render() {
     const container = document.getElementById('friends-sidebar-content');
@@ -4854,21 +5082,19 @@ class FriendsChatManager {
 
     let html = '';
     list.forEach(friend => {
-      const uname = friend.username || '';
-      const fname = friend.fullName || uname || 'Bạn bè';
-      const isActive = this.activeChatPartner === uname;
-      const initial = (fname.charAt(0) || 'U').toUpperCase();
+      const isActive = this.activeChatPartner === friend.username;
+      const initial = friend.fullName.charAt(0).toUpperCase();
       const isOnline = !!friend.isOnline;
 
       html += `
-        <div class="friend-item ${isActive ? 'active' : ''}" onclick="friendsChatManager.openChatWith('${uname}')">
+        <div class="friend-item ${isActive ? 'active' : ''}" onclick="friendsChatManager.openChatWith('${friend.username}')">
           <div class="friend-avatar-wrap">
             <div class="player-avatar" style="width: 38px; height: 38px; font-size: 0.85rem;">${initial}</div>
             <span class="online-indicator ${isOnline ? '' : 'offline'}"></span>
           </div>
           <div class="friend-info">
-            <div class="friend-name">${fname}</div>
-            <div class="friend-last-msg">Lớp ${friend.classGroup || 'CLB'} • @${uname}</div>
+            <div class="friend-name">${friend.fullName}</div>
+            <div class="friend-last-msg">Lớp ${friend.classGroup} • @${friend.username}</div>
           </div>
         </div>
       `;
@@ -4893,14 +5119,12 @@ class FriendsChatManager {
     for (let uname in this.users) {
       if (uname !== myUsername) {
         const u = this.users[uname];
-        if (!u) continue;
-        const fname = u.fullName || u.username || uname;
         const isFriend = myFriendsMap[uname] === 'accepted';
         
         let isPending = false;
         for (let rId in this.friendRequests) {
           const r = this.friendRequests[rId];
-          if (r && r.senderUsername === myUsername && r.receiverUsername === uname && r.status === 'pending') {
+          if (r.senderUsername === myUsername && r.receiverUsername === uname && r.status === 'pending') {
             isPending = true;
             break;
           }
@@ -4908,15 +5132,15 @@ class FriendsChatManager {
 
         html += `
           <div class="friend-item" style="cursor: default;">
-            <div class="player-avatar" style="width: 36px; height: 36px; font-size: 0.8rem;">${(fname.charAt(0) || 'U').toUpperCase()}</div>
+            <div class="player-avatar" style="width: 36px; height: 36px; font-size: 0.8rem;">${u.fullName.charAt(0).toUpperCase()}</div>
             <div class="friend-info">
-              <div class="friend-name">${fname}</div>
-              <div class="friend-last-msg">Lớp ${u.classGroup || 'CLB'} • @${uname}</div>
+              <div class="friend-name">${u.fullName}</div>
+              <div class="friend-last-msg">Lớp ${u.classGroup} • @${u.username}</div>
             </div>
             <div>
               ${isFriend ? '<span class="tag-class" style="background:#dcfce7; color:#15803d; font-size:0.7rem;">Bạn bè</span>' : 
                 (isPending ? '<span class="tag-class" style="background:#fef3c7; color:#b45309; font-size:0.7rem;">Đã gửi</span>' : 
-                `<button class="btn btn-primary btn-sm" style="font-size: 0.72rem; padding: 4px 8px;" onclick="friendsChatManager.sendFriendRequest('${uname}')">
+                `<button class="btn btn-primary btn-sm" style="font-size: 0.72rem; padding: 4px 8px;" onclick="friendsChatManager.sendFriendRequest('${u.username}')">
                   <i class="fa-solid fa-user-plus"></i> Kết bạn
                  </button>`)}
             </div>
@@ -4930,7 +5154,7 @@ class FriendsChatManager {
   }
 
   filterFindList(query) {
-    const q = (query || '').toLowerCase().trim();
+    const q = query.toLowerCase().trim();
     const items = document.querySelectorAll('#find-friends-results .friend-item');
     items.forEach(el => {
       const text = el.textContent.toLowerCase();
@@ -4948,7 +5172,7 @@ class FriendsChatManager {
 
     for (let rId in this.friendRequests) {
       const r = this.friendRequests[rId];
-      if (r && r.receiverUsername === myUsername && r.status === 'pending') {
+      if (r.receiverUsername === myUsername && r.status === 'pending') {
         count++;
         html += `
           <div class="pair-request-card" style="margin: 8px;">
@@ -4978,6 +5202,123 @@ class FriendsChatManager {
 }
 
 window.friendsChatManager = new FriendsChatManager();
+
+
+/* --- fcm-notifications.js --- */
+(function () {
+  const FCM_VAPID_KEY = 'BL1pM66TfOgLRGe7R2mngX3ebpuh6fTtz8LF0DA1NgxmXSRO2U4u6JHbWYBzgBkIpBQjptr3Z1lETiYa7SucxZ8';
+
+  class FCMNotificationManager {
+    constructor() {
+      this.messaging = null;
+      this.swRegistration = null;
+      this.enabled = false;
+      this.initializing = null;
+      this.init();
+    }
+
+    async init() {
+      if (!('serviceWorker' in navigator) || !window.firebase || !window.firebase.messaging) return;
+      try {
+        this.swRegistration = await navigator.serviceWorker.register('./firebase-messaging-sw.js', { scope: './' });
+        this.messaging = window.firebase.messaging();
+        this.messaging.onMessage((payload) => this.handleForegroundMessage(payload));
+        this.enabled = true;
+
+        if ('Notification' in window && Notification.permission === 'granted') {
+          setTimeout(() => this.enable(false), 300);
+        }
+      } catch (e) {
+        console.warn('FCM init failed:', e);
+      }
+    }
+
+    async enable(requestPermission = true) {
+      if (!this.enabled || !this.messaging || !this.swRegistration) return false;
+      if (!window.authManager || !window.authManager.isLoggedIn()) return false;
+      if (!('Notification' in window)) return false;
+
+      let permission = Notification.permission;
+      if (requestPermission && permission !== 'granted') {
+        permission = await Notification.requestPermission();
+      }
+      if (permission !== 'granted') return false;
+
+      if (this.initializing) return this.initializing;
+
+      this.initializing = (async () => {
+        try {
+          const token = await this.messaging.getToken({
+            vapidKey: FCM_VAPID_KEY,
+            serviceWorkerRegistration: this.swRegistration
+          });
+          if (!token) throw new Error('Không lấy được FCM token.');
+
+          const username = window.authManager.currentUser.username;
+          await window.realtimeDB.set(
+            `users/${username}/fcmTokens/${encodeURIComponent(token)}`,
+            true
+          );
+
+          console.log('✅ FCM token đã lưu cho:', username);
+          return true;
+        } catch (e) {
+          console.warn('FCM token registration failed:', e);
+          return false;
+        } finally {
+          this.initializing = null;
+        }
+      })();
+
+      return this.initializing;
+    }
+
+    handleForegroundMessage(payload) {
+      const data = payload && payload.data ? payload.data : {};
+      const title = data.title || '💬 Tin nhắn mới';
+      const body = data.body || 'Bạn có tin nhắn mới.';
+
+      if (window.friendsChatManager) {
+        window.friendsChatManager.playNotificationSound();
+      }
+
+      if (window.app && typeof window.app.showToast === 'function') {
+        window.app.showToast(`${title}: ${body}`, 'info');
+      }
+
+      if ('Notification' in window && Notification.permission === 'granted') {
+        try {
+          const n = new Notification(title, {
+            body,
+            icon: './favicon.svg',
+            tag: data.roomKey ? `chat_${data.roomKey}` : 'chat_message',
+            renotify: true,
+            data: { sender: data.sender || '' }
+          });
+          n.onclick = () => {
+            window.focus();
+            n.close();
+            if (data.sender && window.friendsChatManager) {
+              window.friendsChatManager.openChatWith(data.sender);
+            }
+          };
+        } catch (e) {}
+      }
+    }
+  }
+
+  window.fcmManager = new FCMNotificationManager();
+
+  navigator.serviceWorker?.addEventListener('message', (event) => {
+    if (event.data && event.data.type === 'OPEN_CHAT' && event.data.sender) {
+      setTimeout(() => {
+        if (window.friendsChatManager) {
+          window.friendsChatManager.openChatWith(event.data.sender);
+        }
+      }, 500);
+    }
+  });
+})();
 
 
 /* --- matchmaking.js --- */
