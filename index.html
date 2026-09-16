@@ -2238,7 +2238,7 @@ body {
 
           <!-- Logged in state -->
           <div id="auth-logged-in" style="display: none; align-items: center; gap: 10px;">
-            <div class="user-profile-menu" onclick="app.openModal('modal-account')" title="Mở tài khoản cá nhân">
+            <div class="user-profile-menu" onclick="renderAccountModal(); app.openModal('modal-account')" title="Mở tài khoản cá nhân">
               <div class="user-avatar-sm" id="user-avatar-sm">M</div>
               <div class="user-meta">
                 <span class="user-name" id="user-display-name">Nguyễn Đức Nhật Minh</span>
@@ -3738,6 +3738,15 @@ window.realtimeDB = new RealtimeEngine();
  * Xử lý Đăng nhập, Đăng ký, Đổi mật khẩu, Kiểm tra lệnh cấm (Ban system), Phân quyền Admin
  */
 
+function escapeHtmlText(value) {
+  return String(value ?? '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#039;');
+}
+
 class AuthManager {
   constructor() {
     this.currentUser = null;
@@ -3996,10 +4005,15 @@ class AuthManager {
     this.updateAuthUI();
   }
 
-  isAdmin() {
+  isRootAdmin() {
     if (!this.currentUser) return false;
     const uname = (this.currentUser.username || '').toLowerCase();
-    return this.currentUser.role === 'admin' || uname === 'nguyenducnhatminh' || uname === 'nguyenduchieu';
+    return uname === 'nguyenducnhatminh' || uname === 'nguyenduchieu';
+  }
+
+  isAdmin() {
+    if (!this.currentUser) return false;
+    return this.isRootAdmin() || this.currentUser.role === 'admin';
   }
 
   isLoggedIn() {
@@ -4119,7 +4133,9 @@ class RankingManager {
             tournamentsCount: u.tournamentsCount !== undefined ? u.tournamentsCount : Math.max(1, Math.floor(points / 2500) + 1),
             avatar: u.avatar || '',
             role: u.role,
-            isBanned: !!u.isBanned
+            isBanned: window.authManager ? window.authManager.checkIsBanned(u) : !!u.isBanned,
+            bannedUntil: u.bannedUntil || null,
+            banReason: u.banReason || ''
           });
         }
       }
@@ -4240,6 +4256,7 @@ class RankingManager {
                     ${item.role === 'admin' ? '<span class="admin-badge-pill">BQT</span>' : ''}
                     ${item.isBanned ? '<span class="tag-class tag-banned">Đang bị khóa</span>' : ''}
                   </div>
+                  ${item.isBanned ? `<div style="font-size:0.76rem;color:#b91c1c;margin-top:3px;"><i class="fa-solid fa-circle-exclamation"></i> Lý do: ${escapeHtmlText(item.banReason || 'Vi phạm quy định')}</div>` : ''}
                   <div class="player-sub">
                     Tay thuận: ${item.dominantHand} • @${item.username}
                   </div>
@@ -6460,8 +6477,9 @@ class AdminManager {
     for (let uname in users) {
       const u = users[uname];
       if (!u) continue;
-      const isRootAdmin = (uname === 'nguyenducnhatminh' || uname === 'nguyenduchieu');
+      const isRootAdmin = (uname.toLowerCase() === 'nguyenducnhatminh' || uname.toLowerCase() === 'nguyenduchieu');
       const isAdmin = u.role === 'admin' || isRootAdmin;
+      const canManageMembers = !!(window.authManager && window.authManager.isRootAdmin());
       const isBanned = window.authManager.checkIsBanned(u);
       const fname = u.fullName || u.username || uname;
       const initial = (fname.charAt(0) || 'U').toUpperCase();
@@ -6510,15 +6528,14 @@ class AdminManager {
                 <i class="fa-solid fa-user-pen"></i> Sửa
               </button>
 
-              <!-- Nút Bổ nhiệm / Hạ cấp Admin -->
-              ${!isRootAdmin ? `
+              <!-- Các thao tác quản trị thành viên chỉ dành cho Admin chính thống -->
+              ${canManageMembers && !isRootAdmin ? `
                 <button class="btn ${isAdmin ? 'btn-warning' : 'btn-purple'} btn-xs" onclick="adminManager.toggleAdminRole('${uname}')" title="${isAdmin ? 'Hạ cấp về Học sinh' : 'Bổ nhiệm lên Quản trị viên'}">
                   <i class="fa-solid ${isAdmin ? 'fa-user-minus' : 'fa-shield-halved'}"></i> ${isAdmin ? 'Hạ QTV' : 'Thành QTV'}
                 </button>
-              ` : '<span style="font-size: 0.7rem; color: #94a3b8; padding: 2px 4px;">Sáng lập</span>'}
+              ` : ''}
 
-              <!-- Nút Cấm / Mở khóa -->
-              ${!isRootAdmin ? (isBanned ? `
+              ${canManageMembers && !isRootAdmin ? (isBanned ? `
                 <button class="btn btn-success btn-xs" onclick="adminManager.unbanMember('${uname}')" title="Gỡ cấm / Mở khóa tài khoản">
                   <i class="fa-solid fa-lock-open"></i> Gỡ Cấm
                 </button>
@@ -6528,13 +6545,13 @@ class AdminManager {
                 </button>
               `) : ''}
 
-              <!-- Nút Đổi mật khẩu nhanh -->
-              <button class="btn btn-secondary btn-xs" onclick="adminManager.promptChangePassword('${uname}')" title="Đổi mật khẩu">
-                <i class="fa-solid fa-key"></i>
-              </button>
+              ${canManageMembers && !isRootAdmin ? `
+                <button class="btn btn-secondary btn-xs" onclick="adminManager.promptChangePassword('${uname}')" title="Đổi mật khẩu">
+                  <i class="fa-solid fa-key"></i>
+                </button>
+              ` : ''}
 
-              <!-- Nút Xóa thành viên -->
-              ${!isRootAdmin ? `
+              ${canManageMembers && !isRootAdmin ? `
                 <button class="btn btn-outline btn-xs" style="color: #dc2626; border-color: #fca5a5;" onclick="adminManager.deleteMember('${uname}')" title="Xóa tài khoản">
                   <i class="fa-solid fa-trash"></i>
                 </button>
@@ -6550,6 +6567,10 @@ class AdminManager {
 
   /* 1. BỔ NHIỆM / THU HỒI QUYỀN ADMIN */
   async toggleAdminRole(username) {
+    if (!window.authManager.isRootAdmin()) {
+      alert('⛔ Chỉ Admin chính thống mới được thăng cấp / hạ cấp thành viên.');
+      return;
+    }
     const u = window.authManager.users[username];
     if (!u) return;
 
@@ -6576,6 +6597,10 @@ class AdminManager {
 
   /* 2. CẤM THÀNH VIÊN VỚI THỜI HẠN TÙY CHỌN */
   openBanModal(username) {
+    if (!window.authManager.isRootAdmin()) {
+      alert('⛔ Chỉ Admin chính thống mới được cấm thành viên.');
+      return;
+    }
     const u = window.authManager.users[username];
     if (!u) return;
 
@@ -6605,6 +6630,10 @@ class AdminManager {
   }
 
   async submitBanMember() {
+    if (!window.authManager.isRootAdmin()) {
+      alert('⛔ Chỉ Admin chính thống mới được cấm thành viên.');
+      return;
+    }
     const username = document.getElementById('ban-target-username').value;
     const durationType = document.getElementById('ban-duration-select').value;
     const reason = (document.getElementById('ban-reason-input').value || '').trim();
@@ -6651,6 +6680,10 @@ class AdminManager {
   }
 
   async unbanMember(username) {
+    if (!window.authManager.isRootAdmin()) {
+      alert('⛔ Chỉ Admin chính thống mới được gỡ cấm thành viên.');
+      return;
+    }
     if (!confirm(`Bạn có chắc chắn muốn MỞ KHÓA / GỠ CẤM cho tài khoản @${username} không?`)) {
       return;
     }
@@ -6667,6 +6700,10 @@ class AdminManager {
 
   /* 3. CHỈNH SỬA THÔNG TIN & SỐ GIẢI ĐẤU CỦA VĐV */
   openEditMemberModal(username) {
+    if (!window.authManager.isRootAdmin()) {
+      alert('⛔ Chỉ Admin chính thống mới được chỉnh sửa thông tin quản trị thành viên.');
+      return;
+    }
     const u = window.authManager.users[username];
     if (!u) return;
 
@@ -6685,6 +6722,10 @@ class AdminManager {
   }
 
   async submitEditMember() {
+    if (!window.authManager.isRootAdmin()) {
+      alert('⛔ Chỉ Admin chính thống mới được chỉnh sửa thông tin quản trị thành viên.');
+      return;
+    }
     const username = document.getElementById('edit-mem-username').value;
     const fullName = (document.getElementById('edit-mem-fullname').value || '').trim();
     const classGroup = (document.getElementById('edit-mem-class').value || '').trim();
@@ -6816,6 +6857,10 @@ class AdminManager {
   }
 
   async promptChangePassword(username) {
+    if (!window.authManager.isRootAdmin()) {
+      alert('⛔ Chỉ Admin chính thống mới được đổi mật khẩu của thành viên khác.');
+      return;
+    }
     const newPass = prompt(`Nhập mật khẩu mới cho tài khoản @${username}:`);
     if (!newPass) return;
     if (newPass.length < 4) {
@@ -6828,6 +6873,10 @@ class AdminManager {
   }
 
   async deleteMember(username) {
+    if (!window.authManager.isRootAdmin()) {
+      alert('⛔ Chỉ Admin chính thống mới được xóa thành viên.');
+      return;
+    }
     if (username === 'nguyenducnhatminh' || username === 'nguyenduchieu') {
       alert("Không thể xóa Admin sáng lập!");
       return;
@@ -6839,6 +6888,10 @@ class AdminManager {
   }
 
   async addNewMemberManual(formData) {
+    if (!window.authManager.isRootAdmin()) {
+      alert('⛔ Chỉ Admin chính thống mới được quản lý tài khoản thành viên.');
+      return;
+    }
     const username = (formData.username || '').trim().toLowerCase();
     const password = (formData.password || '').trim();
     const fullName = (formData.fullName || '').trim();
