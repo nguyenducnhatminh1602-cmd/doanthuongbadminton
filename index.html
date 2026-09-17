@@ -3889,6 +3889,9 @@ class AuthManager {
     });
 
     this.updateAuthUI();
+    if (user.role !== 'admin' && user.approved === false) {
+      setTimeout(() => app.showToast('⏳ Tài khoản đang chờ Ban Quản Trị duyệt để được lên bảng xếp hạng.', 'warning'), 100);
+    }
     return user;
   }
 
@@ -3924,6 +3927,7 @@ class AuthManager {
       gender: gender,
       dominantHand: dominantHand,
       role: 'member',
+      approved: false,
       tournamentsCount: 0,
       pointsMS: gender === 'nam' ? 1000 : 0,
       pointsWS: gender === 'nu' ? 1000 : 0,
@@ -4039,7 +4043,13 @@ class AuthManager {
       if (userDisplayName) userDisplayName.textContent = displayName;
       
       if (userDisplayRole) {
-        userDisplayRole.textContent = this.isAdmin() ? '🛡️ Admin BQT' : `🏸 Lớp ${this.currentUser.classGroup || 'Học sinh'}`;
+        if (this.isAdmin()) {
+          userDisplayRole.textContent = '🛡️ Admin BQT';
+        } else if (this.currentUser.approved === false) {
+          userDisplayRole.textContent = '⏳ Chờ duyệt BQT';
+        } else {
+          userDisplayRole.textContent = `🏸 Lớp ${this.currentUser.classGroup || 'Học sinh'}`;
+        }
       }
       if (userAvatarSm) {
         userAvatarSm.textContent = (displayName.charAt(0) || 'U').toUpperCase();
@@ -4122,7 +4132,11 @@ class RankingManager {
       for (let uname in this.users) {
         const u = this.users[uname];
         if (!u) continue;
-        if (u.gender === targetGender) {
+        // Admin/BQT chỉ có quyền điều khiển, không xuất hiện trên bảng xếp hạng.
+        // Tài khoản mới phải được BQT duyệt; dữ liệu cũ chưa có trường approved vẫn được giữ nguyên.
+        const isRootAdmin = uname.toLowerCase() === 'nguyenducnhatminh' || uname.toLowerCase() === 'nguyenduchieu';
+        const isApproved = u.approved !== false;
+        if (u.gender === targetGender && !isRootAdmin && isApproved) {
           const points = u[pointField] || 0;
           list.push({
             id: u.username || uname,
@@ -4136,6 +4150,7 @@ class RankingManager {
             tournamentsCount: u.tournamentsCount !== undefined ? u.tournamentsCount : Math.max(1, Math.floor(points / 2500) + 1),
             avatar: u.avatar || '',
             role: u.role,
+            position: u.position || '',
             isBanned: window.authManager ? window.authManager.checkIsBanned(u) : !!u.isBanned,
             bannedUntil: u.bannedUntil || null,
             banReason: u.banReason || ''
@@ -4146,7 +4161,15 @@ class RankingManager {
       for (let pid in this.pairs) {
         const p = this.pairs[pid];
         if (!p) continue;
-        if (p.category === cat && p.status === 'accepted') {
+        // Không đưa cặp đôi lên BXH nếu một trong hai người là Admin/BQT
+        // hoặc chưa được BQT duyệt.
+        const p1u = this.users[p.player1] || {};
+        const p2u = this.users[p.player2] || {};
+        const p1RootAdmin = (p.player1 || '').toLowerCase() === 'nguyenducnhatminh' || (p.player1 || '').toLowerCase() === 'nguyenduchieu';
+        const p2RootAdmin = (p.player2 || '').toLowerCase() === 'nguyenducnhatminh' || (p.player2 || '').toLowerCase() === 'nguyenduchieu';
+        const p1Approved = p1u.approved !== false;
+        const p2Approved = p2u.approved !== false;
+        if (p.category === cat && p.status === 'accepted' && !p1RootAdmin && !p2RootAdmin && p1Approved && p2Approved) {
           list.push({
             id: p.id || pid,
             type: 'pair',
@@ -4257,6 +4280,7 @@ class RankingManager {
                   <div class="player-name">
                     ${item.fullName}
                     ${item.role === 'admin' ? '<span class="admin-badge-pill">BQT</span>' : ''}
+                    ${item.role === 'admin' && item.position ? `<span class="tag-class" style="margin-left:6px;">${escapeHtmlText(item.position)}</span>` : ''}
                     ${item.isBanned ? '<span class="tag-class tag-banned">Đang bị khóa</span>' : ''}
                   </div>
                   ${item.isBanned ? `<div style="font-size:0.76rem;color:#b91c1c;margin-top:3px;"><i class="fa-solid fa-circle-exclamation"></i> Lý do: ${escapeHtmlText(item.banReason || 'Vi phạm quy định')}</div>` : ''}
@@ -6483,6 +6507,8 @@ class AdminManager {
       const isRootAdmin = (uname.toLowerCase() === 'nguyenducnhatminh' || uname.toLowerCase() === 'nguyenduchieu');
       const isAdmin = u.role === 'admin' || isRootAdmin;
       const canManageMembers = !!(window.authManager && window.authManager.isRootAdmin());
+      const canApproveMembers = !!(window.authManager && window.authManager.isAdmin());
+      const isApproved = u.approved !== false;
       const isBanned = window.authManager.checkIsBanned(u);
       const fname = u.fullName || u.username || uname;
       const initial = (fname.charAt(0) || 'U').toUpperCase();
@@ -6490,7 +6516,9 @@ class AdminManager {
       const singlePts = u.gender === 'nam' ? (u.pointsMS || 0) : (u.pointsWS || 0);
 
       // Trạng thái cấm
-      let statusBadgeHtml = '<span class="tag-class" style="background: #dcfce7; color: #15803d;"><i class="fa-solid fa-check"></i> Hoạt động</span>';
+      let statusBadgeHtml = isApproved
+        ? '<span class="tag-class" style="background: #dcfce7; color: #15803d;"><i class="fa-solid fa-check"></i> Đã duyệt</span>'
+        : '<span class="tag-class" style="background: #fef3c7; color: #b45309;"><i class="fa-solid fa-clock"></i> Chờ duyệt</span>';
       if (isBanned) {
         const banText = window.authManager.getBanDurationText(u);
         statusBadgeHtml = `<span class="tag-class tag-banned" title="${u.banReason || 'Vi phạm'}"><i class="fa-solid fa-ban"></i> Bị khóa: ${banText}</span>`;
@@ -6531,6 +6559,18 @@ class AdminManager {
                 <i class="fa-solid fa-user-pen"></i> Sửa
               </button>
 
+              <!-- Duyệt tài khoản: Admin/BQT có quyền duyệt để thành viên được lên BXH -->
+              ${window.authManager && window.authManager.isRootAdmin() && !isRootAdmin ? `
+              <button class="btn btn-outline btn-xs" onclick="adminManager.openPositionModal('${uname}')" title="Ghi chức vụ">
+                <i class="fa-solid fa-id-badge"></i> Chức vụ
+              </button>
+            ` : ''}
+            ${canApproveMembers && !isRootAdmin && !isApproved ? `
+                <button class="btn btn-success btn-xs" onclick="adminManager.approveMember('${uname}')" title="Duyệt tài khoản cho phép lên bảng xếp hạng">
+                  <i class="fa-solid fa-user-check"></i> Duyệt
+                </button>
+              ` : ''}
+
               <!-- Các thao tác quản trị thành viên chỉ dành cho Admin chính thống -->
               ${canManageMembers && !isRootAdmin ? `
                 <button class="btn ${isAdmin ? 'btn-warning' : 'btn-purple'} btn-xs" onclick="adminManager.toggleAdminRole('${uname}')" title="${isAdmin ? 'Hạ cấp về Học sinh' : 'Bổ nhiệm lên Quản trị viên'}">
@@ -6566,6 +6606,40 @@ class AdminManager {
     }
 
     tbody.innerHTML = html;
+  }
+
+  /* 0. DUYỆT TÀI KHOẢN CHO PHÉP LÊN BẢNG XẾP HẠNG */
+  async openPositionModal(username) {
+    if (!window.authManager.isRootAdmin()) {
+      alert('⛔ Chỉ Admin chính thống mới được ghi chức vụ.');
+      return;
+    }
+    const u = window.authManager.users[username];
+    if (!u) return;
+    const position = prompt(`Ghi chức vụ cho @${username}:`, u.position || '');
+    if (position === null) return;
+    const value = position.trim();
+    if (value.length > 100) { alert('Chức vụ tối đa 100 ký tự.'); return; }
+    await window.realtimeDB.update(`users/${username}`, { position: value });
+    window.app.showToast(value ? `Đã ghi chức vụ cho @${username}.` : `Đã xóa chức vụ của @${username}.`, 'success');
+    this.renderMembersSection();
+    if (window.rankingManager) window.rankingManager.render();
+  }
+
+  async approveMember(username) {
+    if (!window.authManager.isAdmin()) {
+      alert('⛔ Chỉ Admin/Ban Quản Trị mới được duyệt tài khoản.');
+      return;
+    }
+    if (username === 'nguyenducnhatminh' || username === 'nguyenduchieu') return;
+    const u = window.authManager.users[username];
+    if (!u) return;
+    if (!confirm(`Duyệt tài khoản @${username} để được xuất hiện trên bảng xếp hạng?`)) return;
+
+    await window.realtimeDB.update(`users/${username}`, { approved: true });
+    window.app.showToast(`Đã duyệt tài khoản @${username}. Thành viên đã được phép lên bảng xếp hạng!`, 'success');
+    this.renderMembersSection();
+    if (window.rankingManager) window.rankingManager.render();
   }
 
   /* 1. BỔ NHIỆM / THU HỒI QUYỀN ADMIN */
@@ -6919,6 +6993,7 @@ class AdminManager {
       gender: gender,
       dominantHand: 'Phải',
       role: role,
+      approved: true,
       tournamentsCount: tourCount,
       pointsMS: gender === 'nam' ? 1000 : 0,
       pointsWS: gender === 'nu' ? 1000 : 0,
